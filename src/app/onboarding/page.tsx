@@ -35,31 +35,39 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Progress } from '@/components/ui/progress';
 import { Logo } from '@/components/logo';
 import { useAuth } from '@/providers/auth-provider';
+import type { UserProfile } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 
 const profileSchema = z.object({
-  fullName: z.string().min(2),
-  educationLevel: z.string().min(1),
-  degree: z.string().min(1),
-  graduationYear: z.string().min(4),
-  gpa: z.string().optional(),
-  intendedDegree: z.string().min(1),
-  fieldOfStudy: z.string().min(1),
-  targetIntakeYear: z.string().min(4),
-  preferredCountries: z.string().min(1),
-  budgetRangePerYear: z.string().min(1),
-  fundingType: z.string().min(1),
-  ieltsStatus: z.string().min(1),
-  greStatus: z.string().min(1),
-  sopStatus: z.string().min(1),
+  academic: z.object({
+    educationLevel: z.string().min(1, "Please select your education level."),
+    degree: z.string().min(1, "Please enter your degree."),
+    graduationYear: z.string().min(4, "Please enter a valid year."),
+    gpa: z.string().optional(),
+  }),
+  studyGoal: z.object({
+    intendedDegree: z.string().min(1, "Please select your intended degree."),
+    fieldOfStudy: z.string().min(1, "Please enter your field of study."),
+    targetIntakeYear: z.string().min(4, "Please select a year."),
+    preferredCountries: z.string().min(2, "Please enter at least one country."),
+  }),
+  budget: z.object({
+    budgetRangePerYear: z.string().min(1, "Please select a budget range."),
+    fundingType: z.string().min(1, "Please select a funding type."),
+  }),
+  readiness: z.object({
+    ieltsStatus: z.string().min(1, "Please select your IELTS/TOEFL status."),
+    greStatus: z.string().min(1, "Please select your GRE/GMAT status."),
+    sopStatus: z.string().min(1, "Please select your SOP status."),
+  }),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
 const steps = [
-  { id: 'Step 1', name: 'Academic Background', fields: ['educationLevel', 'degree', 'graduationYear', 'gpa'] },
-  { id: 'Step 2', name: 'Study Goals', fields: ['intendedDegree', 'fieldOfStudy', 'targetIntakeYear', 'preferredCountries'] },
-  { id: 'Step 3', name: 'Financials & Readiness', fields: ['budgetRangePerYear', 'fundingType', 'ieltsStatus', 'greStatus', 'sopStatus'] },
+  { id: 'Step 1', name: 'Academic Background', fields: ['academic'] },
+  { id: 'Step 2', name: 'Study Goals', fields: ['studyGoal'] },
+  { id: 'Step 3', name: 'Financials & Readiness', fields: ['budget', 'readiness'] },
 ];
 
 const degreeOptions = [
@@ -74,33 +82,46 @@ const degreeOptionValues = degreeOptions.map(o => o.value);
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [previousStep, setPreviousStep] = useState(0);
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, loading } = useAuth();
   const router = useRouter();
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      fullName: user?.fullName || '',
-      educationLevel: '',
-      degree: '',
-      graduationYear: '',
-      gpa: '',
-      intendedDegree: '',
-      fieldOfStudy: '',
-      targetIntakeYear: '2025',
-      preferredCountries: '',
-      budgetRangePerYear: '',
-      fundingType: '',
-      ieltsStatus: '',
-      greStatus: '',
-      sopStatus: '',
+      academic: {
+        educationLevel: '',
+        degree: '',
+        graduationYear: '',
+        gpa: '',
+      },
+      studyGoal: {
+        intendedDegree: '',
+        fieldOfStudy: '',
+        targetIntakeYear: '2025',
+        preferredCountries: '',
+      },
+      budget: {
+        budgetRangePerYear: '',
+        fundingType: '',
+      },
+      readiness: {
+        ieltsStatus: '',
+        greStatus: '',
+        sopStatus: '',
+      },
     },
   });
 
   const [showOtherDegreeInput, setShowOtherDegreeInput] = useState(() => {
-    const initialDegree = form.getValues('degree');
+    const initialDegree = form.getValues('academic.degree');
     return !!initialDegree && !degreeOptionValues.includes(initialDegree);
   });
+  
+  useEffect(() => {
+    if (user?.onboardingComplete) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
 
 
   const next = async () => {
@@ -123,10 +144,13 @@ export default function OnboardingPage() {
   };
 
   function onSubmit(data: ProfileFormValues) {
-    const { preferredCountries, ...rest } = data;
-    const profileData = {
+    const { studyGoal, ...rest } = data;
+    const profileData: UserProfile = {
       ...rest,
-      preferredCountries: preferredCountries.split(',').map(s => s.trim()),
+      studyGoal: {
+        ...studyGoal,
+        preferredCountries: studyGoal.preferredCountries.split(',').map(s => s.trim()),
+      }
     };
     updateProfile(profileData);
   }
@@ -157,7 +181,7 @@ export default function OnboardingPage() {
                 >
                   {currentStep === 0 && (
                     <div className="space-y-4">
-                      <FormField name="educationLevel" control={form.control} render={({ field }) => (
+                      <FormField name="academic.educationLevel" control={form.control} render={({ field }) => (
                         <FormItem><FormLabel>Highest Level of Education</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Select level" /></SelectTrigger></FormControl>
@@ -166,7 +190,7 @@ export default function OnboardingPage() {
                         </FormItem>
                       )}/>
                       <FormField
-                        name="degree"
+                        name="academic.degree"
                         control={form.control}
                         render={({ field }) => (
                             <FormItem>
@@ -209,10 +233,10 @@ export default function OnboardingPage() {
                         )}
                         />
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField name="graduationYear" control={form.control} render={({ field }) => (
+                        <FormField name="academic.graduationYear" control={form.control} render={({ field }) => (
                             <FormItem><FormLabel>Graduation Year</FormLabel><FormControl><Input placeholder="e.g., 2023" {...field} /></FormControl><FormMessage /></FormItem>
                         )}/>
-                        <FormField name="gpa" control={form.control} render={({ field }) => (
+                        <FormField name="academic.gpa" control={form.control} render={({ field }) => (
                             <FormItem><FormLabel>GPA (Optional)</FormLabel><FormControl><Input placeholder="e.g., 3.8 / 4.0" {...field} /></FormControl><FormMessage /></FormItem>
                         )}/>
                       </div>
@@ -221,7 +245,7 @@ export default function OnboardingPage() {
 
                   {currentStep === 1 && (
                      <div className="space-y-4">
-                        <FormField name="intendedDegree" control={form.control} render={({ field }) => (
+                        <FormField name="studyGoal.intendedDegree" control={form.control} render={({ field }) => (
                             <FormItem><FormLabel>Intended Degree</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Select degree" /></SelectTrigger></FormControl>
@@ -235,10 +259,10 @@ export default function OnboardingPage() {
                                 </SelectContent>
                             </Select><FormMessage /></FormItem>
                         )}/>
-                        <FormField name="fieldOfStudy" control={form.control} render={({ field }) => (
+                        <FormField name="studyGoal.fieldOfStudy" control={form.control} render={({ field }) => (
                             <FormItem><FormLabel>Field of Study</FormLabel><FormControl><Input placeholder="e.g., Artificial Intelligence, Data Science" {...field} /></FormControl><FormMessage /></FormItem>
                         )}/>
-                        <FormField name="targetIntakeYear" control={form.control} render={({ field }) => (
+                        <FormField name="studyGoal.targetIntakeYear" control={form.control} render={({ field }) => (
                             <FormItem><FormLabel>Target Intake Year</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Select year" /></SelectTrigger></FormControl>
@@ -249,7 +273,7 @@ export default function OnboardingPage() {
                                 </SelectContent>
                             </Select><FormMessage /></FormItem>
                         )}/>
-                        <FormField name="preferredCountries" control={form.control} render={({ field }) => (
+                        <FormField name="studyGoal.preferredCountries" control={form.control} render={({ field }) => (
                             <FormItem><FormLabel>Preferred Countries (comma-separated)</FormLabel><FormControl><Input placeholder="e.g., USA, Canada, UK" {...field} /></FormControl><FormMessage /></FormItem>
                         )}/>
                      </div>
@@ -257,7 +281,7 @@ export default function OnboardingPage() {
                   
                   {currentStep === 2 && (
                     <div className="space-y-6">
-                        <FormField name="budgetRangePerYear" control={form.control} render={({ field }) => (
+                        <FormField name="budget.budgetRangePerYear" control={form.control} render={({ field }) => (
                             <FormItem className="space-y-3"><FormLabel>Budget Range Per Year</FormLabel><FormControl>
                                 <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
                                     <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="<20k" /></FormControl><FormLabel className="font-normal">&lt; $20,000</FormLabel></FormItem>
@@ -267,22 +291,22 @@ export default function OnboardingPage() {
                             </FormControl><FormMessage /></FormItem>
                         )}/>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <FormField name="fundingType" control={form.control} render={({ field }) => (
+                            <FormField name="budget.fundingType" control={form.control} render={({ field }) => (
                                 <FormItem><FormLabel>Funding Type</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
                                 <SelectContent><SelectItem value="self-funded">Self-funded</SelectItem><SelectItem value="scholarship-dependent">Scholarship-dependent</SelectItem><SelectItem value="loan-dependent">Loan-dependent</SelectItem></SelectContent></Select><FormMessage /></FormItem>
                             )}/>
-                            <FormField name="sopStatus" control={form.control} render={({ field }) => (
+                            <FormField name="readiness.sopStatus" control={form.control} render={({ field }) => (
                                 <FormItem><FormLabel>SOP Status</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
                                 <SelectContent><SelectItem value="Not started">Not Started</SelectItem><SelectItem value="Draft">Draft</SelectItem><SelectItem value="Ready">Ready</SelectItem></SelectContent></Select><FormMessage /></FormItem>
                             )}/>
-                             <FormField name="ieltsStatus" control={form.control} render={({ field }) => (
+                             <FormField name="readiness.ieltsStatus" control={form.control} render={({ field }) => (
                                 <FormItem><FormLabel>IELTS/TOEFL Status</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
                                 <SelectContent><SelectItem value="Not started">Not Started</SelectItem><SelectItem value="In progress">In Progress</SelectItem><SelectItem value="Completed">Completed</SelectItem></SelectContent></Select><FormMessage /></FormItem>
                             )}/>
-                            <FormField name="greStatus" control={form.control} render={({ field }) => (
+                            <FormField name="readiness.greStatus" control={form.control} render={({ field }) => (
                                 <FormItem><FormLabel>GRE/GMAT Status</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
                                 <SelectContent><SelectItem value="Not started">Not Started</SelectItem><SelectItem value="In progress">In Progress</SelectItem><SelectItem value="Completed">Completed</SelectItem></SelectContent></Select><FormMessage /></FormItem>
@@ -296,13 +320,16 @@ export default function OnboardingPage() {
           </Form>
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button type="button" variant="ghost" onClick={prev} disabled={currentStep === 0}>
+          <Button type="button" variant="ghost" onClick={prev} disabled={currentStep === 0 || loading}>
             Back
           </Button>
           {currentStep === steps.length - 1 ? (
-             <Button type="button" onClick={form.handleSubmit(onSubmit)} className="font-semibold">Unlock Dashboard</Button>
+             <Button type="button" onClick={form.handleSubmit(onSubmit)} className="font-semibold" disabled={loading}>
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Unlock Dashboard
+             </Button>
           ) : (
-            <Button type="button" onClick={next} className="font-semibold">Next Step</Button>
+            <Button type="button" onClick={next} className="font-semibold" disabled={loading}>Next Step</Button>
           )}
         </CardFooter>
       </Card>
