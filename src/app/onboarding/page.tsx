@@ -130,16 +130,26 @@ export default function OnboardingPage() {
     },
   });
 
-  const [showOtherDegreeInput, setShowOtherDegreeInput] = useState(() => {
-    const initialDegree = form.getValues('academic.degree');
-    return !!initialDegree && !degreeOptionValues.includes(initialDegree);
-  });
+  const [showOtherDegreeInput, setShowOtherDegreeInput] = useState(false);
   
   useEffect(() => {
-    if (user?.onboardingComplete) {
-      router.push('/dashboard');
+    // Pre-fill form if user has a profile (for editing)
+    if (user?.profile) {
+      const { studyGoal, ...rest } = user.profile;
+      form.reset({
+        ...rest,
+        studyGoal: {
+          ...studyGoal,
+          preferredCountries: studyGoal.preferredCountries.join(', '),
+        },
+      });
+
+      const initialDegree = user.profile.academic.degree;
+      if (initialDegree && !degreeOptionValues.includes(initialDegree)) {
+        setShowOtherDegreeInput(true);
+      }
     }
-  }, [user, router]);
+  }, [user, form]);
 
 
   const next = async () => {
@@ -161,7 +171,7 @@ export default function OnboardingPage() {
     }
   };
 
-  function onSubmit(data: ProfileFormValues) {
+  async function onSubmit(data: ProfileFormValues) {
     const { studyGoal, ...rest } = data;
     const profileData: UserProfile = {
       ...rest,
@@ -170,7 +180,9 @@ export default function OnboardingPage() {
         preferredCountries: studyGoal.preferredCountries.split(',').map(s => s.trim()),
       }
     };
-    updateProfile(profileData);
+    await updateProfile(profileData);
+    // After creating or updating profile, go to dashboard
+    router.push('/dashboard');
   }
 
   const delta = currentStep - previousStep;
@@ -344,7 +356,7 @@ export default function OnboardingPage() {
           {currentStep === steps.length - 1 ? (
              <Button type="button" onClick={form.handleSubmit(onSubmit)} className="font-semibold" disabled={loading}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Unlock Dashboard
+                {user?.onboardingComplete ? 'Save Changes' : 'Unlock Dashboard'}
              </Button>
           ) : (
             <Button type="button" onClick={next} className="font-semibold" disabled={loading}>Next Step</Button>
