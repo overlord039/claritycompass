@@ -90,4 +90,5 @@ export type University = {
   risks: string;
   imageUrl: string;
   imageHint: string;
+  fields: string[];
 };

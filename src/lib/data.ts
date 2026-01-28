@@ -12,6 +12,7 @@ export const universities: University[] = [
     risks: 'Extremely competitive admissions process and high tuition fees.',
     imageUrl: PlaceHolderImages.find(img => img.id === 'university-1')?.imageUrl || '',
     imageHint: PlaceHolderImages.find(img => img.id === 'university-1')?.imageHint || '',
+    fields: ['Computer Science', 'Engineering', 'Physics', 'Mathematics'],
   },
   {
     id: '2',
@@ -23,6 +24,7 @@ export const universities: University[] = [
     risks: 'Very low acceptance rate and high cost of living in the area.',
     imageUrl: PlaceHolderImages.find(img => img.id === 'university-2')?.imageUrl || '',
     imageHint: PlaceHolderImages.find(img => img.id === 'university-2')?.imageHint || '',
+    fields: ['Innovation', 'Technology', 'Business', 'Law'],
   },
   {
     id: '3',
@@ -34,6 +36,7 @@ export const universities: University[] = [
     risks: 'Large class sizes and competitive environment for co-op placements.',
     imageUrl: PlaceHolderImages.find(img => img.id === 'university-3')?.imageUrl || '',
     imageHint: PlaceHolderImages.find(img => img.id === 'university-3')?.imageHint || '',
+    fields: ['AI', 'Data Science', 'Medicine', 'Robotics'],
   },
   {
     id: '4',
@@ -45,6 +48,7 @@ export const universities: University[] = [
     risks: 'Highly focused on tech, might be less diverse in other fields.',
     imageUrl: PlaceHolderImages.find(img => img.id === 'university-4')?.imageUrl || '',
     imageHint: PlaceHolderImages.find(img => img.id === 'university-4')?.imageHint || '',
+    fields: ['Tech', 'Co-op', 'Engineering', 'Quantum Computing'],
   },
   {
     id: '5',
@@ -56,6 +60,7 @@ export const universities: University[] = [
     risks: 'May not have the same prestige as top-tier universities.',
     imageUrl: PlaceHolderImages.find(img => img.id === 'university-5')?.imageUrl || '',
     imageHint: PlaceHolderImages.find(img => img.id === 'university-5')?.imageHint || '',
+    fields: ['Engineering', 'Business', 'Arts', 'Sustainability'],
   },
   {
     id: '6',
@@ -67,5 +72,6 @@ export const universities: University[] = [
     risks: 'Less internationally recognized compared to larger Canadian universities.',
     imageUrl: PlaceHolderImages.find(img => img.id === 'university-6')?.imageUrl || '',
     imageHint: PlaceHolderImages.find(img => img.id === 'university-6')?.imageHint || '',
+    fields: ['Computer Science', 'Marine Biology', 'Health', 'Oceanography'],
   },
 ];
