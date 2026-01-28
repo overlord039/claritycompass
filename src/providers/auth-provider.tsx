@@ -75,7 +75,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // onAuthStateChanged will handle the rest
     } catch (error: any) {
         console.error(error);
-        toast({ variant: 'destructive', title: 'Login failed', description: error.message });
+        let description = 'An unexpected error occurred. Please try again.';
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+            description = 'Invalid email or password. Please try again.';
+        } else {
+            description = error.message;
+        }
+        toast({ variant: 'destructive', title: 'Login failed', description });
     }
   }, [auth, toast]);
 
@@ -100,7 +106,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         router.push('/onboarding');
       } catch (error: any) {
           console.error(error);
-          toast({ variant: 'destructive', title: 'Sign up failed', description: error.message });
+          if (error.code === 'auth/email-already-in-use') {
+            toast({ variant: 'destructive', title: 'Sign up failed', description: 'This email is already registered. Please login.' });
+          } else {
+            toast({ variant: 'destructive', title: 'Sign up failed', description: error.message });
+          }
       }
   }, [auth, firestore, router, toast]);
 
