@@ -23,6 +23,7 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp, writeBatch, collection, deleteDoc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import { assessProfile } from '@/lib/actions';
 
 type AuthContextType = {
   user: AppUser | null;
@@ -105,6 +106,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleRedirect = (user: AppUser) => {
     router.push(user.onboardingComplete ? '/dashboard' : '/onboarding');
   };
+
+  const updateProfileStrength = useCallback(async (strength: AssessProfileOutput) => {
+    if (!firebaseUser) return;
+    const stateRef = doc(firestore, 'user_state', firebaseUser.uid);
+    const dataToUpdate = {
+      profileStrength: {
+        academics: strength.academicStrength as ProfileStrength['academics'],
+        exams: strength.examReadiness as ProfileStrength['exams'],
+        sop: strength.sopReadiness as ProfileStrength['sop'],
+      },
+      recommendations: strength.recommendations,
+    };
+    await setDoc(stateRef, dataToUpdate, { merge: true });
+  }, [firestore, firebaseUser]);
+
+   // --- AI Profile Assessment Effect ---
+   useEffect(() => {
+    const runInitialAssessment = async () => {
+      // Run assessment only if we have a user, a profile, but no strength data yet.
+      if (appUser && appUser.profile && (!appUser.state?.profileStrength?.academics || !appUser.state?.profileStrength?.exams)) {
+        toast({ title: 'Analyzing Profile...', description: 'The AI is running an initial analysis.' });
+
+        const result = await assessProfile({
+          educationLevel: appUser.profile.academic.educationLevel,
+          degree: appUser.profile.academic.degree,
+          graduationYear: appUser.profile.academic.graduationYear,
+          gpa: appUser.profile.academic.gpa,
+          intendedDegree: appUser.profile.studyGoal.intendedDegree,
+          fieldOfStudy: appUser.profile.studyGoal.fieldOfStudy,
+          targetIntakeYear: appUser.profile.studyGoal.targetIntakeYear,
+          preferredCountries: appUser.profile.studyGoal.preferredCountries.join(', '),
+          budgetRangePerYear: appUser.profile.budget.budgetRangePerYear,
+          fundingType: appUser.profile.budget.fundingType,
+          ieltsStatus: appUser.profile.readiness.ieltsStatus,
+          greStatus: appUser.profile.readiness.greStatus,
+          sopStatus: appUser.profile.readiness.sopStatus,
+        });
+
+        if (result) {
+          await updateProfileStrength(result);
+          toast({ title: 'AI Analysis Complete', description: 'Your profile strength is ready.' });
+        }
+      }
+    };
+
+    if (!authProviderLoading && appUser) {
+      runInitialAssessment();
+    }
+  }, [appUser, authProviderLoading, updateProfileStrength, toast]);
 
   // --- Mutation Functions ---
   const logout = useCallback(async () => {
@@ -232,27 +282,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!firebaseUser) return;
     setAuthProviderLoading(true);
     try {
+      // 1. Save core profile data
       const batch = writeBatch(firestore);
-
       const profileRef = doc(firestore, 'profiles', firebaseUser.uid);
       batch.set(profileRef, { ...profileData, lastUpdated: serverTimestamp() }, { merge: true });
 
-      if (appUser && !appUser.onboardingComplete) {
+      const isFirstOnboarding = appUser && !appUser.onboardingComplete;
+      if (isFirstOnboarding) {
         const userRef = doc(firestore, 'users', firebaseUser.uid);
         batch.update(userRef, { onboardingComplete: true, currentStage: 2 });
-        
         const stateRef = doc(firestore, 'user_state', firebaseUser.uid);
         batch.set(stateRef, { currentStage: 2 }, { merge: true });
       }
-
       await batch.commit();
-      toast({ title: 'Profile Updated', description: 'Your profile has been saved successfully.' });
+      toast({ title: 'Profile Updated', description: 'Re-analyzing your profile with AI...' });
+
+      // 2. Trigger AI assessment
+      const result = await assessProfile({
+        educationLevel: profileData.academic.educationLevel,
+        degree: profileData.academic.degree,
+        graduationYear: profileData.academic.graduationYear,
+        gpa: profileData.academic.gpa,
+        intendedDegree: profileData.studyGoal.intendedDegree,
+        fieldOfStudy: profileData.studyGoal.fieldOfStudy,
+        targetIntakeYear: profileData.studyGoal.targetIntakeYear,
+        preferredCountries: profileData.studyGoal.preferredCountries.join(', '),
+        budgetRangePerYear: profileData.budget.budgetRangePerYear,
+        fundingType: profileData.budget.fundingType,
+        ieltsStatus: profileData.readiness.ieltsStatus,
+        greStatus: profileData.readiness.greStatus,
+        sopStatus: profileData.readiness.sopStatus,
+      });
+
+      // 3. Update strength in Firestore
+      if (result) {
+        await updateProfileStrength(result);
+        toast({ title: 'AI Analysis Complete', description: 'Your profile strength has been updated.' });
+      } else {
+         toast({ variant: 'destructive', title: 'AI Analysis Failed', description: 'Could not assess profile strength.' });
+      }
+
+      // 4. Redirect if it was the first time
+      if (isFirstOnboarding) {
+        router.push('/dashboard');
+      }
+
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Update Failed', description: 'Could not save your profile.' });
     } finally {
       setAuthProviderLoading(false);
     }
-  }, [firestore, firebaseUser, appUser, toast]);
+  }, [firestore, firebaseUser, appUser, toast, router, updateProfileStrength]);
   
   const setStage = async (stage: number) => {
     if (!firebaseUser) return;
@@ -343,19 +423,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await updateDoc(taskRef, { completed });
   }, [firestore, firebaseUser]);
 
-  const updateProfileStrength = useCallback(async (strength: AssessProfileOutput) => {
-    if (!firebaseUser) return;
-    const stateRef = doc(firestore, 'user_state', firebaseUser.uid);
-    const dataToUpdate = {
-      profileStrength: {
-        academics: strength.academicStrength as ProfileStrength['academics'],
-        exams: strength.examReadiness as ProfileStrength['exams'],
-        sop: strength.sopReadiness as ProfileStrength['sop'],
-      },
-      recommendations: strength.recommendations,
-    };
-    await setDoc(stateRef, dataToUpdate, { merge: true });
-  }, [firestore, firebaseUser]);
 
   const value = useMemo(() => ({
     user: appUser,
