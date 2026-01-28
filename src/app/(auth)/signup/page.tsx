@@ -31,7 +31,7 @@ const formSchema = z.object({
 });
 
 export default function SignupPage() {
-    const { login } = useAuth();
+    const { signup } = useAuth();
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -42,9 +42,7 @@ export default function SignupPage() {
     });
 
     function onSubmit(values: z.infer<typeof formSchema>) {
-        // In a real app, you'd call a signup function.
-        // For this prototype, we'll just log the user in.
-        login(values.email, values.fullName);
+        signup(values.fullName, values.email, values.password);
     }
 
   return (
