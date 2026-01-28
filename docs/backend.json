@@ -1,0 +1,444 @@
+{
+  "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Represents a user's profile within the Clarity Compass application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity."
+        },
+        "fullName": {
+          "type": "string",
+          "description": "The user's full name."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "educationLevel": {
+          "type": "string",
+          "description": "The user's highest level of education."
+        },
+        "degreeMajor": {
+          "type": "string",
+          "description": "The user's degree or major."
+        },
+        "graduationYear": {
+          "type": "number",
+          "description": "The user's graduation year."
+        },
+        "gpa": {
+          "type": "number",
+          "description": "The user's GPA (optional)."
+        },
+        "intendedDegree": {
+          "type": "string",
+          "description": "The user's intended degree for study abroad."
+        },
+        "fieldOfStudy": {
+          "type": "string",
+          "description": "The user's field of study for study abroad."
+        },
+        "targetIntakeYear": {
+          "type": "number",
+          "description": "The user's target intake year for study abroad."
+        },
+        "preferredCountries": {
+          "type": "array",
+          "description": "An array of the user's preferred countries for study abroad.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "budgetRangePerYear": {
+          "type": "number",
+          "description": "The user's budget range per year for study abroad."
+        },
+        "fundingType": {
+          "type": "string",
+          "description": "The user's funding type for study abroad (e.g., self-funded, scholarship-dependent, loan-dependent)."
+        },
+        "ieltsStatus": {
+          "type": "string",
+          "description": "The user's IELTS status."
+        },
+        "toeflStatus": {
+          "type": "string",
+          "description": "The user's TOEFL status."
+        },
+        "greStatus": {
+          "type": "string",
+          "description": "The user's GRE status."
+        },
+        "gmatStatus": {
+          "type": "string",
+          "description": "The user's GMAT status."
+        },
+        "sopStatus": {
+          "type": "string",
+          "description": "The user's SOP status (Not started / Draft / Ready)."
+        }
+      },
+      "required": [
+        "id",
+        "fullName",
+        "email",
+        "educationLevel",
+        "degreeMajor",
+        "graduationYear",
+        "intendedDegree",
+        "fieldOfStudy",
+        "targetIntakeYear",
+        "preferredCountries",
+        "budgetRangePerYear",
+        "fundingType",
+        "ieltsStatus",
+        "toeflStatus",
+        "greStatus",
+        "gmatStatus",
+        "sopStatus"
+      ]
+    },
+    "OnboardingStatus": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "OnboardingStatus",
+      "type": "object",
+      "description": "Represents the onboarding status of a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the OnboardingStatus entity. Should match the UserProfile ID."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:1 OnboardingStatus)"
+        },
+        "onboardingComplete": {
+          "type": "boolean",
+          "description": "Indicates whether the user has completed the onboarding process."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "onboardingComplete"
+      ]
+    },
+    "University": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "University",
+      "type": "object",
+      "description": "Represents a university available for study abroad.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the University entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the university."
+        },
+        "country": {
+          "type": "string",
+          "description": "The country where the university is located."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the university."
+        },
+        "costLevel": {
+          "type": "string",
+          "description": "The cost level of attending the university (Low / Medium / High)."
+        },
+        "acceptanceChance": {
+          "type": "string",
+          "description": "The acceptance chance at the university (Low / Medium / High)."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "country",
+        "description",
+        "costLevel",
+        "acceptanceChance"
+      ]
+    },
+    "UserUniversity": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserUniversity",
+      "type": "object",
+      "description": "Represents a user's relationship to a university (shortlisted, locked).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserUniversity entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:N UserUniversity)"
+        },
+        "universityId": {
+          "type": "string",
+          "description": "Reference to University. (Relationship: University 1:N UserUniversity)"
+        },
+        "shortlisted": {
+          "type": "boolean",
+          "description": "Indicates whether the user has shortlisted this university."
+        },
+        "locked": {
+          "type": "boolean",
+          "description": "Indicates whether the user has locked this university."
+        },
+        "category": {
+          "type": "string",
+          "description": "The category (Dream, Target, Safe) assigned to the university for this user."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "universityId",
+        "shortlisted",
+        "locked",
+        "category"
+      ]
+    },
+    "Task": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Task",
+      "type": "object",
+      "description": "Represents a task for a user, generated by the AI.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Task entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:N Task)"
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the task."
+        },
+        "completed": {
+          "type": "boolean",
+          "description": "Indicates whether the task has been completed."
+        },
+        "universityId": {
+          "type": "string",
+          "description": "Reference to University.  The university this task relates to (optional)."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "description",
+        "completed"
+      ]
+    },
+    "AIProfileAssessment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AIProfileAssessment",
+      "type": "object",
+      "description": "Represents the AI assessment of the user's profile strengths and weaknesses.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the AIProfileAssessment entity.  Should match the UserProfile ID."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:1 AIProfileAssessment)"
+        },
+        "academicsStrength": {
+          "type": "string",
+          "description": "The AI-assessed strength of the user's academics (Strong / Average / Weak)."
+        },
+        "examsStatus": {
+          "type": "string",
+          "description": "The AI-assessed status of the user's exams (Not started / In progress / Completed)."
+        },
+        "sopStatus": {
+          "type": "string",
+          "description": "The AI-assessed status of the user's SOP (Not started / Draft / Ready)."
+        },
+        "recommendations": {
+          "type": "array",
+          "description": "An array of recommendations for the user based on the profile assessment.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "academicsStrength",
+        "examsStatus",
+        "sopStatus"
+      ]
+    },
+    "Stage": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Stage",
+      "type": "object",
+      "description": "Represents the current stage of the user in the application process.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Stage entity. Should match the UserProfile ID."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:1 Stage)"
+        },
+        "currentStage": {
+          "type": "number",
+          "description": "The current stage of the user (1-4)."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "currentStage"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores user profile data. Path-based ownership ensures only the authenticated user can access their profile.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/onboardingStatus",
+        "definition": {
+          "entityName": "OnboardingStatus",
+          "schema": {
+            "$ref": "#/backend/entities/OnboardingStatus"
+          },
+          "description": "Stores the onboarding status of a user.  Path-based ownership ensures only the authenticated user can access their onboarding status.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/universities/{universityId}",
+        "definition": {
+          "entityName": "University",
+          "schema": {
+            "$ref": "#/backend/entities/University"
+          },
+          "description": "Stores university data. Access is controlled based on application requirements (e.g., read-only for all users, write access for admins - which is not currently modeled but would be done via a separate `/roles_admin/{uid}` collection check).",
+          "params": [
+            {
+              "name": "universityId",
+              "description": "The unique identifier of the university."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/universities/{universityId}",
+        "definition": {
+          "entityName": "UserUniversity",
+          "schema": {
+            "$ref": "#/backend/entities/UserUniversity"
+          },
+          "description": "Stores the relationship between a user and a university (shortlisted, locked, category). Path-based ownership ensures only the authenticated user can access their university relationships.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "universityId",
+              "description": "The unique identifier of the university."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/tasks/{taskId}",
+        "definition": {
+          "entityName": "Task",
+          "schema": {
+            "$ref": "#/backend/entities/Task"
+          },
+          "description": "Stores tasks for a user. Path-based ownership ensures only the authenticated user can access their tasks.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "taskId",
+              "description": "The unique identifier of the task."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/aiProfileAssessment",
+        "definition": {
+          "entityName": "AIProfileAssessment",
+          "schema": {
+            "$ref": "#/backend/entities/AIProfileAssessment"
+          },
+          "description": "Stores the AI profile assessment for a user. Path-based ownership ensures only the authenticated user can access their AI profile assessment.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/stage",
+        "definition": {
+          "entityName": "Stage",
+          "schema": {
+            "$ref": "#/backend/entities/Stage"
+          },
+          "description": "Stores the current stage of a user. Path-based ownership ensures only the authenticated user can access their stage.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability, aligning with the core design principles. User profiles and related data are stored under `/users/{userId}`, providing path-based ownership for private data. Onboarding status, AI assessments, and stages are 1:1 relationships, co-located under the user's document to avoid `get()` calls in security rules. Universities are stored in a separate `/universities` collection, and user-university relationships are managed in `/users/{userId}/universities/{universityId}`.  Tasks are stored under `/users/{userId}/tasks/{taskId}`. This structure enables secure `list` operations by segregating data based on ownership and avoiding complex filtering within rules. No custom claims are used; authentication relies solely on `request.auth.uid` and the path-based ownership. Explicit state modeling is used for the `OnboardingStatus` and `Stage` entities.  Denormalization isn't explicitly used, but the structure supports easy denormalization should the need arise, for example, adding a `userId` field to the `/universities` document to track who created it (if that functionality was added).  The chosen structure supports QAPs by ensuring all documents within a collection share the same security requirements, and by using clear, path-based authorization."
+  }
+}

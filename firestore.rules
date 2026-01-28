@@ -1,0 +1,175 @@
+/**
+ * Core Philosophy: This ruleset enforces a strict user-ownership model. All user-specific data,
+ * including profiles, tasks, and relationships with universities, is stored in a private data tree
+ * accessible only to the authenticated owner. This prevents users from accessing or even knowing
+ * about each other's data.
+ *
+ * Data Structure: User data is hierarchically organized under `/users/{userId}`. This path-based
+ * ownership is the cornerstone of the security model. Publicly accessible data, like the list of
+ * universities, is stored in a separate top-level collection (`/universities`) to ensure clear
+ * and performant separation between private and public information.
+ *
+ * Key Security Decisions:
+ * - User Enumeration Disabled: Listing documents in the top-level `/users` collection is explicitly
+ *   forbidden to protect user privacy.
+ * - Strict Ownership: A user can only read or write documents within their own `/users/{userId}` path.
+ * - Public Read-Only Data: The `/universities` collection is readable by any signed-in user but
+ *   is locked down against all client-side writes to maintain data integrity. Administrator-level
+ *   changes must be made using server-side SDKs that bypass these rules.
+ * - Relational Integrity: On creation, documents within a user's data tree must contain a `userId`
+ *   field that matches the `{userId}` in the path, ensuring a consistent and auditable link to
+ *   the owner. This field is enforced as immutable on updates.
+ *
+ * Denormalization for Authorization: The rules rely on the `{userId}` wildcard in the document
+ * path as the primary mechanism for authorization. This avoids costly `get()` calls to other
+ * documents. Additionally, user-specific documents (like Tasks) contain a denormalized `userId`
+ * field, which is validated against the path to ensure data consistency and clear ownership.
+ *
+ * Structural Segregation: The separation of private user data (`/users/{userId}/...`) from public
+ * data (`/universities`) is a core design choice. This makes security rules simpler and allows
+ * for safe, efficient list operations on the public collection without risking exposure of
+ * private information.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions to improve readability and reuse of logic.
+
+    /**
+     * Checks if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the currently authenticated user's UID matches the provided userId.
+     * This is the foundation of the ownership model.
+     * @param userId The UID to check against the request's authentication token.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Checks for ownership on an existing document. Used for update and delete operations.
+     * This prevents modifying or deleting documents that do not exist.
+     * @param userId The UID of the resource owner.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * Validates that the user is creating their own profile document and that the
+     * document's internal `id` field matches their UID.
+     * @param userId The userId from the path, which must match the auth UID.
+     */
+    function isCreatingOwnProfile(userId) {
+      return isOwner(userId) && request.resource.data.id == userId;
+    }
+
+    /**
+     * Validates that the user is creating a document in their own subcollection
+     * and that the document's internal `userId` field matches their UID.
+     * @param userId The userId from the path, which must match the auth UID.
+     */
+    function isCreatingOwnSubcollectionDoc(userId) {
+      return isOwner(userId) && request.resource.data.userId == userId;
+    }
+
+    /**
+     * Validates that a user-owned document maintains its original `userId` on update.
+     * This prevents re-assigning a document to another user.
+     */
+    function isMaintainingOwnership() {
+      return request.resource.data.userId == resource.data.userId;
+    }
+
+    /**
+     * Validates that the primary ID of a user profile document is not changed on update.
+     */
+    function isIdImmutable() {
+      return resource.data.id == request.resource.data.id;
+    }
+
+
+    /**
+     * @description Controls access to user profile documents. A user can create their own profile,
+     *   and can only read or write their own profile after it is created.
+     * @path /users/{userId}
+     * @allow (create) An authenticated user creating their own profile document.
+     * @deny (list) Any user attempting to list all documents in the `/users` collection.
+     * @principle Restricts access to a user's own data tree and prevents user enumeration.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isCreatingOwnProfile(userId);
+      allow update: if isExistingOwner(userId) && isIdImmutable();
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Controls access to single-document user subcollections like onboardingStatus,
+     *   aiProfileAssessment, and stage. Only the owner can manage these documents.
+     * @path /users/{userId}/{singletonCollection} where singletonCollection is one of:
+     *   - onboardingStatus
+     *   - aiProfileAssessment
+     *   - stage
+     * @allow (get) An authenticated user retrieving their own stage document.
+     * @deny (create) An authenticated user trying to create an onboardingStatus for another user.
+     * @principle Enforces strict data ownership for 1-to-1 user data.
+     */
+    match /users/{userId}/{singletonCollection}/{docId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isCreatingOwnSubcollectionDoc(userId);
+      allow update: if isExistingOwner(userId) && isMaintainingOwnership();
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Controls access to user-specific tasks. Only the owner can manage their tasks.
+     * @path /users/{userId}/tasks/{taskId}
+     * @allow (create) An authenticated user creating a task for themselves.
+     * @deny (get) A user trying to read another user's task document.
+     * @principle Enforces document ownership and validates relational integrity between documents.
+     */
+    match /users/{userId}/tasks/{taskId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isCreatingOwnSubcollectionDoc(userId);
+      allow update: if isExistingOwner(userId) && isMaintainingOwnership();
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Controls access to a user's relationship with universities (shortlisting, etc.).
+     * @path /users/{userId}/universities/{universityId}
+     * @allow (update) An authenticated user updating their shortlisted status for a university.
+     * @deny (list) A user trying to list another user's university choices.
+     * @principle Enforces document ownership and validates relational integrity between documents.
+     */
+    match /users/{userId}/universities/{universityId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isCreatingOwnSubcollectionDoc(userId);
+      allow update: if isExistingOwner(userId) && isMaintainingOwnership();
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Controls access to the global list of universities. This data is public
+     *   for any authenticated user to read, but cannot be modified by any client.
+     * @path /universities/{universityId}
+     * @allow (list) Any signed-in user listing all available universities.
+     * @deny (create, update, delete) Any user attempting to modify the university list.
+     * @principle Provides public read access while protecting data integrity by disallowing all client writes.
+     */
+    match /universities/{universityId} {
+      allow get, list: if isSignedIn();
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}
