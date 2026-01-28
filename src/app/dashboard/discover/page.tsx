@@ -141,11 +141,14 @@ export default function DiscoverPage() {
             const fieldOfStudy = user.profile.studyGoal.fieldOfStudy.toLowerCase();
 
             const fieldSynonyms: {[key: string]: string[]} = {
-                'computer science': ['cs'],
+                'computer science': ['cs', 'cse'],
                 'information technology': ['it'],
-                'artificial intelligence': ['ai'],
+                'artificial intelligence': ['ai', 'ml'],
+                'data science': ['ds'],
+                'business analytics': ['ba'],
+                'engineering': ['eng']
             };
-            const userSearchTerms = [fieldOfStudy, ...(fieldSynonyms[fieldOfStudy] || [])];
+            const userSearchTerms = [fieldOfStudy, ...(fieldSynonyms[fieldOfStudy] || [])].filter(t => t);
 
             const relevantUniversities = allUniversities.filter(uni => {
                 // 1. Country filter: must match one of the preferred countries (if any)
@@ -153,7 +156,7 @@ export default function DiscoverPage() {
                 if (!countryMatch) return false;
 
                 // 2. Field of study filter: must have a matching field
-                const fieldMatch = uni.fields.some(uniField => {
+                const fieldMatch = userSearchTerms.length === 0 || uni.fields.some(uniField => {
                     const uniFieldLower = uniField.toLowerCase();
                     // Match if user term is in uni field OR uni field is in user term (e.g., "cs" in "computer science")
                     return userSearchTerms.some(term => uniFieldLower.includes(term) || term.includes(uniFieldLower));
@@ -161,10 +164,13 @@ export default function DiscoverPage() {
                 if (!fieldMatch) return false;
                 
                 // 3. Budget filter: university cost must be within or below user's budget level
-                const budgetMap = { "<20k": "Low", "20k-40k": "Medium", ">40k": "High" };
-                const userBudgetLevel = budgetMap[user.profile.budget.budgetRangePerYear];
-                if (userBudgetLevel === "Low" && (uni.costLevel === "Medium" || uni.costLevel === "High")) return false;
-                if (userBudgetLevel === "Medium" && uni.costLevel === "High") return false;
+                const budgetMap: {[key: string]: 'Low' | 'Medium' | 'High'} = { "<20k": "Low", "20k-40k": "Medium", ">40k": "High" };
+                const userBudgetLevel = user.profile.budget.budgetRangePerYear ? budgetMap[user.profile.budget.budgetRangePerYear] : null;
+
+                if (userBudgetLevel) {
+                    if (userBudgetLevel === "Low" && (uni.costLevel === "Medium" || uni.costLevel === "High")) return false;
+                    if (userBudgetLevel === "Medium" && uni.costLevel === "High") return false;
+                }
 
                 return true;
             });
