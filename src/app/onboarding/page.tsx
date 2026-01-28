@@ -226,7 +226,14 @@ export default function OnboardingPage() {
                             <FormItem><FormLabel>Intended Degree</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Select degree" /></SelectTrigger></FormControl>
-                                <SelectContent><SelectItem value="masters">Master's</SelectItem><SelectItem value="phd">PhD</SelectItem><SelectItem value="post-grad-diploma">Post-Graduate Diploma</SelectItem></SelectContent>
+                                <SelectContent>
+                                    <SelectItem value="masters-science">Master of Science (MS)</SelectItem>
+                                    <SelectItem value="masters-arts">Master of Arts (MA)</SelectItem>
+                                    <SelectItem value="masters-mba">Master of Business Administration (MBA)</SelectItem>
+                                    <SelectItem value="phd">Doctor of Philosophy (PhD)</SelectItem>
+                                    <SelectItem value="post-grad-diploma">Post-Graduate Diploma</SelectItem>
+                                    <SelectItem value="certificate">Graduate Certificate</SelectItem>
+                                </SelectContent>
                             </Select><FormMessage /></FormItem>
                         )}/>
                         <FormField name="fieldOfStudy" control={form.control} render={({ field }) => (
@@ -236,7 +243,11 @@ export default function OnboardingPage() {
                             <FormItem><FormLabel>Target Intake Year</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Select year" /></SelectTrigger></FormControl>
-                                <SelectContent><SelectItem value="2025">2025</SelectItem><SelectItem value="2026">2026</SelectItem></SelectContent>
+                                <SelectContent>
+                                    <SelectItem value="2025">2025</SelectItem>
+                                    <SelectItem value="2026">2026</SelectItem>
+                                    <SelectItem value="2027">2027</SelectItem>
+                                </SelectContent>
                             </Select><FormMessage /></FormItem>
                         )}/>
                         <FormField name="preferredCountries" control={form.control} render={({ field }) => (
