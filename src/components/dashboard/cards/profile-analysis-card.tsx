@@ -9,6 +9,7 @@ import { CircularProgress } from '@/components/ui/circular-progress';
 import { GraduationCap, Trophy, Wallet, BookOpen } from 'lucide-react';
 import type { UserProfile } from '@/lib/types';
 import { useMemo } from 'react';
+import { cn } from '@/lib/utils';
 
 const calculateProfileScore = (profile: UserProfile | null): number => {
     if (!profile) return 0;
@@ -110,9 +111,9 @@ export function ProfileAnalysisCard() {
     const profileScore = useMemo(() => calculateProfileScore(user?.profile || null), [user?.profile]);
 
     const getProfileStatus = (score: number) => {
-        if (score > 70) return { text: "Strong", variant: "default" as const };
-        if (score > 40) return { text: "Moderate", variant: "secondary" as const };
-        return { text: "Needs Work", variant: "destructive" as const };
+        if (score > 70) return { text: "Strong", variant: "default" as const, colorClass: "text-green-500" };
+        if (score > 40) return { text: "Moderate", variant: "secondary" as const, colorClass: "text-amber-500" };
+        return { text: "Needs Work", variant: "destructive" as const, colorClass: "text-red-500" };
     }
 
     const profileStatus = getProfileStatus(profileScore);
@@ -123,7 +124,7 @@ export function ProfileAnalysisCard() {
                 <div>
                     <CardTitle className="text-xl font-semibold">Profile Analysis</CardTitle>
                     <CardDescription>
-                        Hey {user?.fullName?.split(' ')[0] || 'there'}, here's a summary of your profile strength.
+                        Hey {user?.fullName?.split(' ')[0] || 'there'}, here's an AI-powered summary of your profile.
                     </CardDescription>
                 </div>
                 <Badge variant={profileStatus.variant}>
@@ -132,7 +133,7 @@ export function ProfileAnalysisCard() {
             </CardHeader>
             <CardContent className="flex-grow flex flex-col md:flex-row items-center gap-6 p-6">
                 <div className="relative flex-shrink-0">
-                    <CircularProgress value={profileScore} className="h-32 w-32" strokeWidth={8}/>
+                    <CircularProgress value={profileScore} className={cn("h-32 w-32", profileStatus.colorClass)} strokeWidth={8}/>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                         <span className="text-3xl font-bold text-foreground">{profileScore}</span>
                         <span className="text-sm text-muted-foreground">Strength</span>
