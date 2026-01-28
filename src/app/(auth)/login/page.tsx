@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/providers/auth-provider';
+import { Loader2 } from 'lucide-react';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -59,7 +60,7 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   }
 
 export default function LoginPage() {
-    const { login, googleSignIn, sendPasswordReset } = useAuth();
+    const { login, googleSignIn, sendPasswordReset, loading } = useAuth();
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -69,6 +70,7 @@ export default function LoginPage() {
     });
 
     function onSubmit(values: z.infer<typeof formSchema>) {
+        if (loading) return;
         login(values.email, values.password);
     }
 
@@ -91,8 +93,8 @@ export default function LoginPage() {
       </CardHeader>
       <CardContent>
       <div className="space-y-4">
-        <Button variant="outline" className="w-full" onClick={googleSignIn}>
-            <GoogleIcon className="mr-2 h-5 w-5" />
+        <Button variant="outline" className="w-full" onClick={googleSignIn} disabled={loading}>
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-5 w-5" />}
             Sign in with Google
         </Button>
         <div className="relative">
@@ -114,7 +116,7 @@ export default function LoginPage() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="you@example.com" {...field} />
+                    <Input type="email" placeholder="you@example.com" {...field} disabled={loading} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -127,18 +129,19 @@ export default function LoginPage() {
                 <FormItem>
                     <div className="flex items-center justify-between">
                         <FormLabel>Password</FormLabel>
-                        <Button type="button" variant="link" size="sm" className="p-0 h-auto -my-1" onClick={handlePasswordReset}>
+                        <Button type="button" variant="link" size="sm" className="p-0 h-auto -my-1" onClick={handlePasswordReset} disabled={loading}>
                             Forgot password?
                         </Button>
                     </div>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
+                    <Input type="password" placeholder="••••••••" {...field} disabled={loading} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full font-semibold">
+            <Button type="submit" className="w-full font-semibold" disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Login
             </Button>
           </form>

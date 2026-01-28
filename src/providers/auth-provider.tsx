@@ -88,8 +88,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         let description = 'An unexpected error occurred. Please try again.';
         if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
             description = 'Invalid email or password. Please try again.';
-        } else {
-            description = error.message;
         }
         toast({ variant: 'destructive', title: 'Login failed', description });
     }
@@ -118,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (error.code === 'auth/email-already-in-use') {
             toast({ variant: 'destructive', title: 'Sign up failed', description: 'This email is already registered. Please login.' });
           } else {
-            toast({ variant: 'destructive', title: 'Sign up failed', description: error.message });
+            toast({ variant: 'destructive', title: 'Sign up failed', description: 'An unexpected error occurred. Please try again.' });
           }
       }
   }, [auth, firestore, router, toast]);
@@ -153,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             router.push(existingUser.onboardingComplete ? '/dashboard' : '/onboarding');
         }
     } catch(error: any) {
-        toast({ variant: 'destructive', title: 'Google Sign-In failed', description: error.message });
+        toast({ variant: 'destructive', title: 'Google Sign-In failed', description: 'An unexpected error occurred. Please try again.' });
     }
   }, [auth, firestore, router, toast]);
   
@@ -162,7 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await sendPasswordResetEmail(auth, email);
         toast({ title: 'Password Reset Email Sent', description: 'Check your inbox for a password reset link.' });
     } catch (error: any) {
-        toast({ variant: 'destructive', title: 'Error', description: error.message });
+        toast({ variant: 'destructive', title: 'Error', description: 'An unexpected error occurred. Please try again.' });
     }
   }, [auth, toast]);
 
