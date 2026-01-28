@@ -4,10 +4,8 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { universityDiscoveryEngine } from '@/lib/actions';
 import { useAuth } from '@/providers/auth-provider';
 import type { University, UserProfile } from '@/lib/types';
-import type { UniversityDiscoveryEngineInput } from '@/ai/flows/university-discovery-engine';
 import { universities as allUniversities } from '@/lib/data';
 
 import { Button } from '@/components/ui/button';
@@ -22,19 +20,36 @@ type CategorizedUniversities = {
   safe: University[];
 };
 
-const transformProfileForDiscovery = (profile: UserProfile): Omit<UniversityDiscoveryEngineInput, 'universitiesData'> => {
-    return {
-        educationLevel: profile.academic.educationLevel,
-        degree: profile.academic.degree,
-        fieldOfStudy: profile.studyGoal.fieldOfStudy,
-        targetIntakeYear: profile.studyGoal.targetIntakeYear,
-        preferredCountries: profile.studyGoal.preferredCountries,
-        budgetRangePerYear: profile.budget.budgetRangePerYear,
-        ieltsStatus: profile.readiness.ieltsStatus,
-        greStatus: profile.readiness.greStatus,
-        sopStatus: profile.readiness.sopStatus,
-    };
+const scoreFromProfile = (profile: UserProfile): number => {
+    let score = 0;
+    const maxScore = 10; // 4 for GPA, 2 for IELTS, 2 for GRE, 2 for SOP
+    
+    // GPA score (max 4)
+    if (profile.academic.gpa) {
+        const gpaVal = parseFloat(profile.academic.gpa.split('/')[0]);
+        if (!isNaN(gpaVal)) {
+            if (gpaVal >= 3.7) score += 4;
+            else if (gpaVal >= 3.3) score += 3;
+            else if (gpaVal >= 3.0) score += 2;
+            else if (gpaVal >= 2.5) score += 1;
+        }
+    } else {
+        // If no GPA, give an average score
+        score += 2;
+    }
+
+    const readinessMap: { [key: string]: number } = { 'Completed': 2, 'In progress': 1, 'Not started': 0, 'Ready': 2, 'Draft': 1 };
+
+    // Exam readiness (max 4)
+    score += readinessMap[profile.readiness.ieltsStatus] || 0;
+    score += readinessMap[profile.readiness.greStatus] || 0;
+
+    // SOP readiness (max 2)
+    score += readinessMap[profile.readiness.sopStatus] || 0;
+
+    return Math.round((score / maxScore) * 100);
 }
+
 
 function UniversityCard({ university, onShortlist, isShortlisted }: { university: University; onShortlist: () => void; isShortlisted: boolean }) {
     return (
@@ -78,28 +93,50 @@ export default function DiscoverPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const discover = async () => {
+        const categorizeUniversities = () => {
             if (!user?.profile) {
-                // Keep loading if profile is not available yet. This can happen on initial load.
+                // We need the profile to categorize. If it's not here, wait.
+                setLoading(true);
                 return;
             };
             setLoading(true);
-            const result = await universityDiscoveryEngine({
-                ...transformProfileForDiscovery(user.profile),
-                universitiesData: JSON.stringify(allUniversities),
+            
+            const userScore = scoreFromProfile(user.profile);
+            
+            const uniDifficultyScore = {
+                'High': 90,
+                'Medium': 65,
+                'Low': 40,
+            };
+
+            const dream: University[] = [];
+            const target: University[] = [];
+            const safe: University[] = [];
+
+            // Pre-filter by country preference.
+            const preferredCountries = user.profile.studyGoal.preferredCountries.map(c => c.toLowerCase());
+            const relevantUniversities = allUniversities.filter(uni => 
+                preferredCountries.length === 0 || preferredCountries.includes(uni.country.toLowerCase())
+            );
+
+            relevantUniversities.forEach(uni => {
+                const score = uniDifficultyScore[uni.acceptanceChance];
+                const diff = userScore - score;
+
+                if (diff < -20) { // User score is significantly lower than uni requirement
+                    dream.push(uni);
+                } else if (Math.abs(diff) <= 20) { // User score is in the same ballpark
+                    target.push(uni);
+                } else { // User score is significantly higher
+                    safe.push(uni);
+                }
             });
 
-            if (result) {
-                setCategorized({
-                dream: allUniversities.filter(u => result.dreamUniversities.includes(u.name)),
-                target: allUniversities.filter(u => result.targetUniversities.includes(u.name)),
-                safe: allUniversities.filter(u => result.safeUniversities.includes(u.name)),
-                });
-            }
+            setCategorized({ dream, target, safe });
             setLoading(false);
         };
 
-        discover();
+        categorizeUniversities();
     }, [user?.profile]);
 
     const renderSkeletons = () => (
