@@ -1,5 +1,4 @@
 import type { University } from './types';
-import { PlaceHolderImages } from './placeholder-images';
 
 const getCostLevel = (tuition: number): 'Low' | 'Medium' | 'High' => {
   if (tuition < 25000) return 'Low';
@@ -106,14 +105,14 @@ const newUniversities = [
 ];
 
 export const universities: University[] = newUniversities.map((uni, index) => {
-  const image = PlaceHolderImages[index % PlaceHolderImages.length];
+  const seed = uni.id + index;
   return {
     ...uni,
     acceptanceChance: uni.acceptance_difficulty,
     costLevel: getCostLevel(uni.annual_tuition_usd),
     fit: `A ${uni.ranking_band} university in ${uni.city}, ${uni.country}. Known for programs in ${uni.fields.join(', ')}.`,
     risks: `Requires an average GPA of ${uni.avg_gpa_required}. GRE is ${uni.gre_required ? 'required' : 'not required'}.`,
-    imageUrl: image.imageUrl,
-    imageHint: image.imageHint,
+    imageUrl: `https://picsum.photos/seed/${seed}/400/300`,
+    imageHint: `university ${uni.country.toLowerCase()}`,
   };
 });
