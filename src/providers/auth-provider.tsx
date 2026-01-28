@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { User as AppUser, Profile, ProfileStrength, ApplicationTask } from '@/lib/types';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { 
     useUser, 
     useFirestore, 
@@ -48,6 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [appUser, setAppUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
   const { toast } = useToast();
 
   const { user: firebaseUser, isUserLoading: isAuthLoading } = useUser();
@@ -69,6 +70,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setAppUser(null);
       }
   }, [firebaseUser, userProfile, isAuthLoading, isProfileLoading]);
+
+  useEffect(() => {
+    if (!loading && appUser?.onboardingComplete && pathname === '/onboarding') {
+        router.push('/dashboard');
+    }
+  }, [appUser, loading, pathname, router]);
 
   const login = useCallback(async (email: string, password: string) => {
     if (loading) return;
@@ -187,8 +194,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const updatedUser = { ...appUser, profile: profileData, onboardingComplete: true, currentStage: 2 as const };
     setDocumentNonBlocking(doc(firestore, 'users', appUser.id), updatedUser, { merge: true });
     setAppUser(updatedUser);
-    router.push('/dashboard');
-  }, [appUser, firestore, router]);
+  }, [appUser, firestore]);
   
   const updateProfileStrength = useCallback((strength: ProfileStrength) => {
     updateUser({ profileStrength: strength });
