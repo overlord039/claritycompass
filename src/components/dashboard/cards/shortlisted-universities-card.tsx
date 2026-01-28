@@ -7,7 +7,7 @@ import { universities as allUniversities } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ListHeart, Search } from 'lucide-react';
+import { Heart, Search } from 'lucide-react';
 import type { University } from '@/lib/types';
 
 function MiniUniversityCard({ university }: { university: University }) {
@@ -39,7 +39,7 @@ export function ShortlistedUniversitiesCard() {
         <Card className="h-full flex flex-col">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-xl font-semibold">
-                    <ListHeart className="h-5 w-5" />
+                    <Heart className="h-5 w-5" />
                     Shortlisted Universities
                 </CardTitle>
                 <CardDescription>
