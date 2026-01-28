@@ -46,6 +46,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [appUser, setAppUser] = useState<AppUser | null>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -59,17 +60,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<AppUser>(userProfileRef);
 
-  const loading = isAuthLoading || (firebaseUser && isProfileLoading);
-
   useEffect(() => {
-    if (!loading && firebaseUser && userProfile) {
-        setAppUser(userProfile);
-    } else if (!loading && !firebaseUser) {
-        setAppUser(null);
-    }
-  }, [firebaseUser, userProfile, loading]);
+      const isSystemLoading = isAuthLoading || (firebaseUser && isProfileLoading);
+      setLoading(isSystemLoading);
+      if (!isSystemLoading && firebaseUser && userProfile) {
+          setAppUser(userProfile);
+      } else if (!isSystemLoading && !firebaseUser) {
+          setAppUser(null);
+      }
+  }, [firebaseUser, userProfile, isAuthLoading, isProfileLoading]);
 
   const login = useCallback(async (email: string, password: string) => {
+    if (loading) return;
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
@@ -91,14 +93,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         toast({ variant: 'destructive', title: 'Login failed', description });
     }
-  }, [auth, firestore, router, toast]);
+  }, [auth, firestore, router, toast, loading]);
 
   const signup = useCallback(async (fullName: string, email: string, password: string) => {
+      if (loading) return;
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         const initialUser: AppUser = {
-            uid: user.uid,
+            id: user.uid,
             email: user.email,
             fullName: fullName,
             onboardingComplete: false,
@@ -119,9 +122,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             toast({ variant: 'destructive', title: 'Sign up failed', description: 'An unexpected error occurred. Please try again.' });
           }
       }
-  }, [auth, firestore, router, toast]);
+  }, [auth, firestore, router, toast, loading]);
 
   const googleSignIn = useCallback(async () => {
+    if (loading) return;
     const provider = new GoogleAuthProvider();
     try {
         const result = await signInWithPopup(auth, provider);
@@ -131,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (!userDocSnap.exists()) {
              const initialUser: AppUser = {
-                uid: user.uid,
+                id: user.uid,
                 email: user.email,
                 fullName: user.displayName,
                 onboardingComplete: false,
@@ -153,7 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch(error: any) {
         toast({ variant: 'destructive', title: 'Google Sign-In failed', description: 'An unexpected error occurred. Please try again.' });
     }
-  }, [auth, firestore, router, toast]);
+  }, [auth, firestore, router, toast, loading]);
   
   const sendPasswordReset = useCallback(async (email: string) => {
     try {
@@ -173,7 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateUser = (data: Partial<AppUser>) => {
       if (appUser) {
           const updatedUser = { ...appUser, ...data };
-          setDocumentNonBlocking(doc(firestore, 'users', appUser.uid), updatedUser, { merge: true });
+          setDocumentNonBlocking(doc(firestore, 'users', appUser.id), updatedUser, { merge: true });
           setAppUser(updatedUser); // Optimistic update
       }
   };

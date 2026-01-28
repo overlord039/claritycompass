@@ -29,7 +29,7 @@ export type ApplicationTask = {
 };
 
 export type User = {
-  uid: string;
+  id: string;
   email: string | null;
   fullName: string | null;
   onboardingComplete: boolean;
