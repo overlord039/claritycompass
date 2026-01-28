@@ -74,7 +74,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await signInWithEmailAndPassword(auth, email, password);
         // onAuthStateChanged will handle the rest
     } catch (error: any) {
-        console.error(error);
         let description = 'An unexpected error occurred. Please try again.';
         if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
             description = 'Invalid email or password. Please try again.';
@@ -105,7 +104,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setAppUser(initialUser);
         router.push('/onboarding');
       } catch (error: any) {
-          console.error(error);
           if (error.code === 'auth/email-already-in-use') {
             toast({ variant: 'destructive', title: 'Sign up failed', description: 'This email is already registered. Please login.' });
           } else {
@@ -144,7 +142,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             router.push(existingUser.onboardingComplete ? '/dashboard' : '/onboarding');
         }
     } catch(error: any) {
-        console.error(error);
         toast({ variant: 'destructive', title: 'Google Sign-In failed', description: error.message });
     }
   }, [auth, firestore, router, toast]);
@@ -154,7 +151,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await sendPasswordResetEmail(auth, email);
         toast({ title: 'Password Reset Email Sent', description: 'Check your inbox for a password reset link.' });
     } catch (error: any) {
-        console.error(error);
         toast({ variant: 'destructive', title: 'Error', description: error.message });
     }
   }, [auth, toast]);
