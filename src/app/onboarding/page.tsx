@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Progress } from '@/components/ui/progress';
-import { Logo } from '@/components/ui/logo';
+import { Logo } from '@/components/logo';
 import { useAuth } from '@/providers/auth-provider';
 import { useRouter } from 'next/navigation';
 
