@@ -140,13 +140,24 @@ export default function DiscoverPage() {
             const preferredCountries = user.profile.studyGoal.preferredCountries.map(c => c.trim().toLowerCase()).filter(c => c);
             const fieldOfStudy = user.profile.studyGoal.fieldOfStudy.toLowerCase();
 
+            const fieldSynonyms: {[key: string]: string[]} = {
+                'computer science': ['cs'],
+                'information technology': ['it'],
+                'artificial intelligence': ['ai'],
+            };
+            const userSearchTerms = [fieldOfStudy, ...(fieldSynonyms[fieldOfStudy] || [])];
+
             const relevantUniversities = allUniversities.filter(uni => {
                 // 1. Country filter: must match one of the preferred countries (if any)
                 const countryMatch = preferredCountries.length === 0 || preferredCountries.some(c => uni.country.toLowerCase().includes(c));
                 if (!countryMatch) return false;
 
                 // 2. Field of study filter: must have a matching field
-                const fieldMatch = uni.fields.some(field => field.toLowerCase().includes(fieldOfStudy));
+                const fieldMatch = uni.fields.some(uniField => {
+                    const uniFieldLower = uniField.toLowerCase();
+                    // Match if user term is in uni field OR uni field is in user term (e.g., "cs" in "computer science")
+                    return userSearchTerms.some(term => uniFieldLower.includes(term) || term.includes(uniFieldLower));
+                });
                 if (!fieldMatch) return false;
                 
                 // 3. Budget filter: university cost must be within or below user's budget level
