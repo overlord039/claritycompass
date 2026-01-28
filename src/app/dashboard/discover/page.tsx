@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -20,35 +19,59 @@ type CategorizedUniversities = {
   safe: University[];
 };
 
-const scoreFromProfile = (profile: UserProfile): number => {
-    let score = 0;
-    const maxScore = 10; // 4 for GPA, 2 for IELTS, 2 for GRE, 2 for SOP
+// More robust GPA parser to handle various formats and normalize to a 0-100 scale
+const parseGpa = (gpaString?: string): number | null => {
+    if (!gpaString) return null;
+    const sanitized = gpaString.replace(/[^0-9./]/g, '');
+    const parts = sanitized.split('/');
+    const gpa = parseFloat(parts[0]);
+    if (isNaN(gpa)) return null;
+
+    let maxGpa = parts.length > 1 ? parseFloat(parts[1]) : 0;
     
-    // GPA score (max 4)
-    if (profile.academic.gpa) {
-        const gpaVal = parseFloat(profile.academic.gpa.split('/')[0]);
-        if (!isNaN(gpaVal)) {
-            if (gpaVal >= 3.7) score += 4;
-            else if (gpaVal >= 3.3) score += 3;
-            else if (gpaVal >= 3.0) score += 2;
-            else if (gpaVal >= 2.5) score += 1;
-        }
-    } else {
-        // If no GPA, give an average score
-        score += 2;
+    // Infer max scale if not provided (e.g., "3.8" or "8.5")
+    if (maxGpa === 0) {
+        if (gpa > 10) return null; // Invalid GPA
+        if (gpa <= 4.0) maxGpa = 4.0;
+        else if (gpa <= 5.0) maxGpa = 5.0; // Some systems use 5.0
+        else maxGpa = 10.0;
     }
 
-    const readinessMap: { [key: string]: number } = { 'Completed': 2, 'In progress': 1, 'Not started': 0, 'Ready': 2, 'Draft': 1 };
+    if (maxGpa === 0) return null;
 
-    // Exam readiness (max 4)
-    score += readinessMap[profile.readiness.ieltsStatus] || 0;
-    score += readinessMap[profile.readiness.greStatus] || 0;
+    return (gpa / maxGpa) * 100;
+};
 
-    // SOP readiness (max 2)
-    score += readinessMap[profile.readiness.sopStatus] || 0;
 
-    return Math.round((score / maxScore) * 100);
-}
+// Improved scoring logic based on weighted profile attributes
+const scoreFromProfile = (profile: UserProfile): number => {
+    // Weights for each category, summing to 1.0
+    const weights = { gpa: 0.4, ielts: 0.2, gre: 0.2, sop: 0.2 };
+    
+    let totalWeightedScore = 0;
+
+    // 1. GPA Score (40%)
+    const gpaScore = parseGpa(profile.academic.gpa); // This is 0-100
+    // Use the normalized 0-100 score, or assume 60/100 if not provided
+    totalWeightedScore += (gpaScore ?? 60) * weights.gpa;
+    
+    const readinessMap: { [key: string]: number } = { // 0-100 scale
+        'Completed': 100, 'Ready': 100, 
+        'In progress': 50, 'Draft': 50, 
+        'Not started': 10 // Give some points for having it on the radar
+    };
+
+    // 2. IELTS Score (20%)
+    totalWeightedScore += (readinessMap[profile.readiness.ieltsStatus] ?? 10) * weights.ielts;
+    
+    // 3. GRE Score (20%)
+    totalWeightedScore += (readinessMap[profile.readiness.greStatus] ?? 10) * weights.gre;
+
+    // 4. SOP Score (20%)
+    totalWeightedScore += (readinessMap[profile.readiness.sopStatus] ?? 10) * weights.sop;
+
+    return Math.round(totalWeightedScore); // Already on a 0-100 scale
+};
 
 
 function UniversityCard({ university, onShortlist, isShortlisted }: { university: University; onShortlist: () => void; isShortlisted: boolean }) {
@@ -95,7 +118,6 @@ export default function DiscoverPage() {
     useEffect(() => {
         const categorizeUniversities = () => {
             if (!user?.profile) {
-                // We need the profile to categorize. If it's not here, wait.
                 setLoading(true);
                 return;
             };
@@ -103,31 +125,54 @@ export default function DiscoverPage() {
             
             const userScore = scoreFromProfile(user.profile);
             
+            // Defines the baseline score for each university difficulty tier
             const uniDifficultyScore = {
-                'High': 90,
+                'High': 85,
                 'Medium': 65,
-                'Low': 40,
+                'Low': 45,
             };
 
             const dream: University[] = [];
             const target: University[] = [];
             const safe: University[] = [];
 
-            // Pre-filter by country preference.
-            const preferredCountries = user.profile.studyGoal.preferredCountries.map(c => c.toLowerCase());
-            const relevantUniversities = allUniversities.filter(uni => 
-                preferredCountries.length === 0 || preferredCountries.includes(uni.country.toLowerCase())
-            );
+            // --- Pre-filter to get the most relevant universities first ---
+            const preferredCountries = user.profile.studyGoal.preferredCountries.map(c => c.trim().toLowerCase()).filter(c => c);
+            const fieldOfStudy = user.profile.studyGoal.fieldOfStudy.toLowerCase();
+
+            const relevantUniversities = allUniversities.filter(uni => {
+                // 1. Country filter: must match one of the preferred countries (if any)
+                const countryMatch = preferredCountries.length === 0 || preferredCountries.some(c => uni.country.toLowerCase().includes(c));
+                if (!countryMatch) return false;
+
+                // 2. Field of study filter: must have a matching field
+                const fieldMatch = uni.fields.some(field => field.toLowerCase().includes(fieldOfStudy));
+                if (!fieldMatch) return false;
+                
+                // 3. Budget filter: university cost must be within or below user's budget level
+                const budgetMap = { "<20k": "Low", "20k-40k": "Medium", ">40k": "High" };
+                const userBudgetLevel = budgetMap[user.profile.budget.budgetRangePerYear];
+                if (userBudgetLevel === "Low" && (uni.costLevel === "Medium" || uni.costLevel === "High")) return false;
+                if (userBudgetLevel === "Medium" && uni.costLevel === "High") return false;
+
+                return true;
+            });
+            // --- End of Filtering ---
 
             relevantUniversities.forEach(uni => {
                 const score = uniDifficultyScore[uni.acceptanceChance];
                 const diff = userScore - score;
 
-                if (diff < -20) { // User score is significantly lower than uni requirement
+                // User score is significantly lower than uni requirement -> Dream
+                if (diff < -15) { 
                     dream.push(uni);
-                } else if (Math.abs(diff) <= 20) { // User score is in the same ballpark
+                } 
+                // User score is in the same ballpark -> Target
+                else if (Math.abs(diff) <= 15) { 
                     target.push(uni);
-                } else { // User score is significantly higher
+                } 
+                // User score is significantly higher -> Safe
+                else { 
                     safe.push(uni);
                 }
             });
@@ -162,7 +207,7 @@ export default function DiscoverPage() {
                             University Discovery
                         </CardTitle>
                         <CardDescription>
-                            Here are universities categorized by our AI based on your profile. Shortlist your favorites.
+                            Here are universities categorized based on your profile. Shortlist your favorites.
                         </CardDescription>
                     </div>
                     <Button asChild variant="outline">
@@ -194,6 +239,14 @@ export default function DiscoverPage() {
                                 </div>
                                 )
                             ))}
+                             {categorized.dream.length === 0 && categorized.target.length === 0 && categorized.safe.length === 0 && (
+                                <div className="text-center py-10">
+                                    <p className="text-muted-foreground mb-4">No universities matched your specific criteria. Try broadening your search in your profile!</p>
+                                    <Button asChild variant="default">
+                                        <Link href="/onboarding">Edit Profile</Link>
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     )}
                 </CardContent>
