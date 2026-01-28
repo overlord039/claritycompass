@@ -7,6 +7,27 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Zap, ShieldCheck, BookOpen, FileText, Activity } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 import { cn } from '@/lib/utils';
+import type { UserProfile } from '@/lib/types';
+import type { AssessProfileInput } from '@/ai/flows/ai-profile-assessment';
+
+
+const transformProfileForAI = (profile: UserProfile): AssessProfileInput => {
+    return {
+        educationLevel: profile.academic.educationLevel,
+        degree: profile.academic.degree,
+        graduationYear: profile.academic.graduationYear,
+        gpa: profile.academic.gpa,
+        intendedDegree: profile.studyGoal.intendedDegree,
+        fieldOfStudy: profile.studyGoal.fieldOfStudy,
+        targetIntakeYear: profile.studyGoal.targetIntakeYear,
+        preferredCountries: profile.studyGoal.preferredCountries.join(', '),
+        budgetRangePerYear: profile.budget.budgetRangePerYear,
+        fundingType: profile.budget.fundingType,
+        ieltsStatus: profile.readiness.ieltsStatus,
+        greStatus: profile.readiness.greStatus,
+        sopStatus: profile.readiness.sopStatus,
+    };
+};
 
 export function ProfileStrength() {
     const { user, profileStrength, updateProfileStrength } = useAuth();
@@ -14,7 +35,7 @@ export function ProfileStrength() {
     useEffect(() => {
         const runAssessment = async () => {
             if (user?.profile && !profileStrength) {
-                const result = await assessProfile(user.profile);
+                const result = await assessProfile(transformProfileForAI(user.profile));
                 if (result) {
                     updateProfileStrength(result);
                 }
@@ -24,9 +45,9 @@ export function ProfileStrength() {
     }, [user, profileStrength, updateProfileStrength]);
 
     const strengthItems = [
-        { icon: ShieldCheck, label: 'Academics', value: profileStrength?.academicStrength },
-        { icon: BookOpen, label: 'Exams', value: profileStrength?.examReadiness },
-        { icon: FileText, label: 'SOP', value: profileStrength?.sopReadiness },
+        { icon: ShieldCheck, label: 'Academics', value: profileStrength?.academics },
+        { icon: BookOpen, label: 'Exams', value: profileStrength?.exams },
+        { icon: FileText, label: 'SOP', value: profileStrength?.sop },
     ];
 
     const getStrengthColor = (value: string | null | undefined) => {
@@ -65,10 +86,10 @@ export function ProfileStrength() {
                         </div>
                     ))}
                 </div>
-                {profileStrength.recommendations && (
+                {user.state?.recommendations && (
                     <div>
                         <h4 className="font-semibold mb-2 flex items-center gap-2"><Activity size={18}/> Recommendations</h4>
-                        <p className="text-muted-foreground text-sm whitespace-pre-line">{profileStrength.recommendations}</p>
+                        <p className="text-muted-foreground text-sm whitespace-pre-line">{user.state.recommendations}</p>
                     </div>
                 )}
             </div>

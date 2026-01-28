@@ -26,11 +26,11 @@ export function ProfileSummary() {
     }
 
     const summaryItems = [
-        { icon: GraduationCap, label: 'Education', value: `${profile.degree}, graduated ${profile.graduationYear}` },
-        { icon: Target, label: 'Goal', value: `${profile.intendedDegree} in ${profile.fieldOfStudy}` },
-        { icon: Briefcase, label: 'Intake', value: profile.targetIntakeYear },
-        { icon: MapPin, label: 'Countries', value: profile.preferredCountries.join(', ') },
-        { icon: DollarSign, label: 'Budget', value: `${profile.budgetRangePerYear} (via ${profile.fundingType})` },
+        { icon: GraduationCap, label: 'Education', value: `${profile.academic.degree}, graduated ${profile.academic.graduationYear}` },
+        { icon: Target, label: 'Goal', value: `${profile.studyGoal.intendedDegree} in ${profile.studyGoal.fieldOfStudy}` },
+        { icon: Briefcase, label: 'Intake', value: profile.studyGoal.targetIntakeYear },
+        { icon: MapPin, label: 'Countries', value: profile.studyGoal.preferredCountries.join(', ') },
+        { icon: DollarSign, label: 'Budget', value: `${profile.budget.budgetRangePerYear} (via ${profile.budget.fundingType})` },
     ];
 
     return (

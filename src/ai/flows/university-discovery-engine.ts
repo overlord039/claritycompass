@@ -20,7 +20,7 @@ const UniversityDiscoveryEngineInputSchema = z.object({
   preferredCountries: z.array(z.string()).describe('The preferred countries for studying.'),
   budgetRangePerYear: z.string().describe('The budget range per year the student can afford.'),
   ieltsStatus: z.string().describe('The IELTS status of the student.'),
-  greGmatStatus: z.string().describe('The GRE/GMAT status of the student.'),
+  greStatus: z.string().describe('The GRE/GMAT status of the student.'),
   sopStatus: z.string().describe('The SOP status of the student.'),
   universitiesData: z.string().describe('JSON string containing an array of universities objects, each with properties like country, costLevel, acceptanceChance, and fit.'),
 });
@@ -56,7 +56,7 @@ Target Intake Year: {{{targetIntakeYear}}}
 Preferred Countries: {{#each preferredCountries}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
 Budget Range Per Year: {{{budgetRangePerYear}}}
 IELTS Status: {{{ieltsStatus}}}
-GRE/GMAT Status: {{{greGmatStatus}}}
+GRE/GMAT Status: {{{greStatus}}}
 SOP Status: {{{sopStatus}}}
 
 Universities Data: {{{universitiesData}}}

@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { universityDiscoveryEngine } from '@/lib/actions';
 import { useAuth } from '@/providers/auth-provider';
-import type { University } from '@/lib/types';
+import type { University, UserProfile } from '@/lib/types';
+import type { UniversityDiscoveryEngineInput } from '@/ai/flows/university-discovery-engine';
 import { universities as allUniversities } from '@/lib/data';
 import { StageWrapper } from './stage-wrapper';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,20 @@ type CategorizedUniversities = {
   target: University[];
   safe: University[];
 };
+
+const transformProfileForDiscovery = (profile: UserProfile): Omit<UniversityDiscoveryEngineInput, 'universitiesData'> => {
+    return {
+        educationLevel: profile.academic.educationLevel,
+        degree: profile.academic.degree,
+        fieldOfStudy: profile.studyGoal.fieldOfStudy,
+        targetIntakeYear: profile.studyGoal.targetIntakeYear,
+        preferredCountries: profile.studyGoal.preferredCountries,
+        budgetRangePerYear: profile.budget.budgetRangePerYear,
+        ieltsStatus: profile.readiness.ieltsStatus,
+        greStatus: profile.readiness.greStatus,
+        sopStatus: profile.readiness.sopStatus,
+    };
+}
 
 function UniversityCard({ university, onShortlist, isShortlisted }: { university: University; onShortlist: () => void; isShortlisted: boolean }) {
     return (
@@ -64,7 +79,7 @@ export default function Stage2Discovery() {
       if (!user?.profile) return;
       setLoading(true);
       const result = await universityDiscoveryEngine({
-        ...user.profile,
+        ...transformProfileForDiscovery(user.profile),
         universitiesData: JSON.stringify(allUniversities),
       });
 
