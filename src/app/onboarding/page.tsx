@@ -62,6 +62,15 @@ const steps = [
   { id: 'Step 3', name: 'Financials & Readiness', fields: ['budgetRangePerYear', 'fundingType', 'ieltsStatus', 'greStatus', 'sopStatus'] },
 ];
 
+const degreeOptions = [
+    { value: 'Bachelor of Science', label: 'Bachelor of Science (B.S.)' },
+    { value: 'Bachelor of Arts', label: 'Bachelor of Arts (B.A.)' },
+    { value: 'Master of Science', label: 'Master of Science (M.S.)' },
+    { value: 'Master of Business Administration', label: 'Master of Business Administration (MBA)' },
+    { value: 'Doctor of Philosophy', label: 'Doctor of Philosophy (Ph.D.)' },
+];
+const degreeOptionValues = degreeOptions.map(o => o.value);
+
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [previousStep, setPreviousStep] = useState(0);
@@ -87,6 +96,12 @@ export default function OnboardingPage() {
       sopStatus: '',
     },
   });
+
+  const [showOtherDegreeInput, setShowOtherDegreeInput] = useState(() => {
+    const initialDegree = form.getValues('degree');
+    return !!initialDegree && !degreeOptionValues.includes(initialDegree);
+  });
+
 
   const next = async () => {
     const fields = steps[currentStep].fields;
@@ -151,9 +166,49 @@ export default function OnboardingPage() {
                           </Select><FormMessage />
                         </FormItem>
                       )}/>
-                      <FormField name="degree" control={form.control} render={({ field }) => (
-                        <FormItem><FormLabel>Degree Name</FormLabel><FormControl><Input placeholder="e.g., Bachelor of Science in Computer Science" {...field} /></FormControl><FormMessage /></FormItem>
-                      )}/>
+                      <FormField
+                        name="degree"
+                        control={form.control}
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Degree Name</FormLabel>
+                            <Select
+                                onValueChange={(value) => {
+                                if (value === 'other') {
+                                    setShowOtherDegreeInput(true);
+                                    field.onChange('');
+                                } else {
+                                    setShowOtherDegreeInput(false);
+                                    field.onChange(value);
+                                }
+                                }}
+                                value={showOtherDegreeInput ? 'other' : field.value}
+                            >
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select your degree" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                {degreeOptions.map(opt => (
+                                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                ))}
+                                <SelectItem value="other">Other</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {showOtherDegreeInput && (
+                                <FormControl>
+                                <Input
+                                    placeholder="Please specify your degree"
+                                    {...field}
+                                    className="mt-2"
+                                />
+                                </FormControl>
+                            )}
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField name="graduationYear" control={form.control} render={({ field }) => (
                             <FormItem><FormLabel>Graduation Year</FormLabel><FormControl><Input placeholder="e.g., 2023" {...field} /></FormControl><FormMessage /></FormItem>
