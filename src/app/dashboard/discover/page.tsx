@@ -115,8 +115,8 @@ export default function DiscoverPage() {
                 gpa: userGpa,
                 budgetMax: budgetMax,
                 fundingType: profile.budget.fundingType,
-                preferredCountries: profile.studyGoal.preferredCountries.map(c => c.trim()),
-                targetField: profile.studyGoal.fieldOfStudy.trim(),
+                preferredCountries: profile.studyGoal.preferredCountries.map(c => c.trim().toLowerCase()),
+                targetField: profile.studyGoal.fieldOfStudy.trim().toLowerCase(),
                 exams: {
                     ieltsCompleted: profile.readiness.ieltsStatus === 'Completed',
                     greCompleted: profile.readiness.greStatus === 'Completed',
@@ -133,7 +133,7 @@ export default function DiscoverPage() {
             const getUserFieldGroup = (field: string) => {
                 const lowerField = field.toLowerCase();
                 for (const group in fieldEquivalents) {
-                    if (fieldEquivalents[group].includes(lowerField)) {
+                    if (fieldEquivalents[group].some(term => lowerField.includes(term) || term.includes(lowerField))) {
                         return group;
                     }
                 }
@@ -144,12 +144,12 @@ export default function DiscoverPage() {
             const discovered: DiscoveredUniversity[] = [];
 
             allUniversities.forEach(uni => {
-                let whyItFits = '';
-                const risks: string[] = [];
-
-                if (userProfileForEngine.preferredCountries.length > 0 && !userProfileForEngine.preferredCountries.some(c => uni.country.toLowerCase() === c.toLowerCase())) {
+                if (userProfileForEngine.preferredCountries.length > 0 && !userProfileForEngine.preferredCountries.includes(uni.country.toLowerCase())) {
                     return;
                 }
+
+                let whyItFits = '';
+                const risks: string[] = [];
 
                 const uniFieldGroups = uni.fields.map(f => getUserFieldGroup(f));
                 const isFieldMatch = uniFieldGroups.includes(userFieldGroup);
@@ -234,8 +234,13 @@ export default function DiscoverPage() {
             setCategorized({ dream, target, safe });
             setLoading(false);
         };
-        runDiscoveryEngine();
-    }, [user?.profile]);
+        
+        if (user?.profile) {
+            runDiscoveryEngine();
+        } else {
+            setLoading(false);
+        }
+    }, [user]);
 
     const renderSkeletons = () => (
         <div className="space-y-8">
@@ -271,8 +276,15 @@ export default function DiscoverPage() {
                     </Button>
                 </CardHeader>
                 <CardContent className="p-6">
-                    {loading || !categorized ? (
+                    {loading ? (
                         renderSkeletons()
+                    ) : !categorized || (!categorized.dream.length && !categorized.target.length && !categorized.safe.length) ? (
+                        <div className="text-center py-10">
+                            <p className="text-muted-foreground mb-4">No universities matched your specific criteria. Try broadening your search in your profile!</p>
+                            <Button asChild variant="default">
+                                <Link href="/onboarding">Edit Profile</Link>
+                            </Button>
+                        </div>
                     ) : (
                         <div className="space-y-12">
                             {Object.entries(categorized).map(([category, unis]) => (
@@ -292,14 +304,6 @@ export default function DiscoverPage() {
                                 </div>
                                 )
                             ))}
-                             {categorized.dream.length === 0 && categorized.target.length === 0 && categorized.safe.length === 0 && (
-                                <div className="text-center py-10">
-                                    <p className="text-muted-foreground mb-4">No universities matched your specific criteria. Try broadening your search in your profile!</p>
-                                    <Button asChild variant="default">
-                                        <Link href="/onboarding">Edit Profile</Link>
-                                    </Button>
-                                </div>
-                            )}
                         </div>
                     )}
                 </CardContent>
