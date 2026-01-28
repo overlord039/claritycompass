@@ -30,7 +30,21 @@ service cloud.firestore {
       // Only allow updating stage and onboarding status.
       allow update: if isOwner(userId) && request.resource.data.id == resource.data.id;
       allow delete: if isOwner(userId);
-      allow list: if false; 
+      allow list: if false;
+
+      // tasks/{taskId}: User-specific tasks nested under the user.
+      match /tasks/{taskId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isCreatingOwnSubDoc(userId);
+        allow update, delete: if isOwner(userId) && isOwnerOf(resource.data);
+      }
+      
+      // shortlisted_universities/{universityId}: User's university choices nested under the user.
+      match /shortlisted_universities/{universityId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isCreatingOwnSubDoc(userId);
+        allow update, delete: if isOwner(userId) && isOwnerOf(resource.data);
+      }
     }
     
     // profiles/{uid}: Detailed, user-editable profile data.
@@ -46,21 +60,7 @@ service cloud.firestore {
       allow delete: if isOwner(userId);
       allow list: if false;
     }
-
-    // tasks/{uid}/items/{taskId}: User-specific tasks.
-    match /tasks/{userId}/items/{taskId} {
-      allow list, get: if isOwner(userId);
-      allow create: if isCreatingOwnSubDoc(userId);
-      allow update, delete: if isOwner(userId) && isOwnerOf(resource.data);
-    }
     
-    // shortlisted_universities/{uid}/items/{universityId}: User's university choices.
-    match /shortlisted_universities/{userId}/items/{universityId} {
-      allow list, get: if isOwner(userId);
-      allow create: if isCreatingOwnSubDoc(userId);
-      allow update, delete: if isOwner(userId) && isOwnerOf(resource.data);
-    }
-
     // universities_master/{universityId}: Public data, read-only for clients.
     match /universities_master/{universityId} {
       allow get, list: if isSignedIn();

@@ -60,8 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const userBaseRef = useMemoFirebase(() => firestore && firebaseUser ? doc(firestore, 'users', firebaseUser.uid) : null, [firestore, firebaseUser]);
   const userProfileRef = useMemoFirebase(() => firestore && firebaseUser ? doc(firestore, 'profiles', firebaseUser.uid) : null, [firestore, firebaseUser]);
   const userStateRef = useMemoFirebase(() => firestore && firebaseUser ? doc(firestore, 'user_state', firebaseUser.uid) : null, [firestore, firebaseUser]);
-  const shortlistedUniversitiesRef = useMemoFirebase(() => firestore && firebaseUser ? collection(firestore, 'shortlisted_universities', firebaseUser.uid, 'items') : null, [firestore, firebaseUser]);
-  const tasksRef = useMemoFirebase(() => firestore && firebaseUser ? collection(firestore, 'tasks', firebaseUser.uid, 'items') : null, [firestore, firebaseUser]);
+  const shortlistedUniversitiesRef = useMemoFirebase(() => firestore && firebaseUser ? collection(firestore, 'users', firebaseUser.uid, 'shortlisted_universities') : null, [firestore, firebaseUser]);
+  const tasksRef = useMemoFirebase(() => firestore && firebaseUser ? collection(firestore, 'users', firebaseUser.uid, 'tasks') : null, [firestore, firebaseUser]);
   
   const { data: userBase, isLoading: loadingBase } = useDoc<AppUser>(userBaseRef);
   const { data: userProfile, isLoading: loadingProfile } = useDoc<UserProfile>(userProfileRef);

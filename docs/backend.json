@@ -143,12 +143,12 @@
         "description": "Public, read-only master list of universities."
       },
       {
-        "path": "/shortlisted_universities/{userId}/{universityId}",
+        "path": "/users/{userId}/shortlisted_universities/{universityId}",
         "definition": { "schema": { "$ref": "#/entities/ShortlistedUniversity" } },
         "description": "Stores a user's shortlisted and locked universities."
       },
       {
-        "path": "/tasks/{userId}/{taskId}",
+        "path": "/users/{userId}/tasks/{taskId}",
         "definition": { "schema": { "$ref": "#/entities/Task" } },
         "description": "Stores user-specific application tasks."
       }
