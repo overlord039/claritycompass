@@ -4,6 +4,7 @@ import { AuthProvider } from '@/providers/auth-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import { FirebaseClientProvider } from '@/firebase';
+import { CursorFollower } from '@/components/cursor-follower';
 
 export const metadata: Metadata = {
   title: 'Clarity Compass',
@@ -28,6 +29,7 @@ export default function RootLayout({
       <body className={cn('font-body antialiased')}>
         <FirebaseClientProvider>
           <AuthProvider>
+            <CursorFollower />
             {children}
             <Toaster />
           </AuthProvider>
