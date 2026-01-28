@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -37,6 +37,7 @@ import { Logo } from '@/components/logo';
 import { useAuth } from '@/providers/auth-provider';
 import type { UserProfile } from '@/lib/types';
 import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 
 const profileSchema = z.object({
   academic: z.object({
