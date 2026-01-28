@@ -64,15 +64,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!loading && firebaseUser && userProfile) {
         setAppUser(userProfile);
-    } else {
+    } else if (!loading && !firebaseUser) {
         setAppUser(null);
     }
   }, [firebaseUser, userProfile, loading]);
 
   const login = useCallback(async (email: string, password: string) => {
     try {
-        await signInWithEmailAndPassword(auth, email, password);
-        // onAuthStateChanged will handle the rest
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+            const existingUser = userDocSnap.data() as AppUser;
+            setAppUser(existingUser);
+            router.push(existingUser.onboardingComplete ? '/dashboard' : '/onboarding');
+        } else {
+            await signOut(auth);
+            toast({ variant: 'destructive', title: 'Login failed', description: 'Your user profile could not be found. Please try signing up again.' });
+        }
     } catch (error: any) {
         let description = 'An unexpected error occurred. Please try again.';
         if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
@@ -82,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         toast({ variant: 'destructive', title: 'Login failed', description });
     }
-  }, [auth, toast]);
+  }, [auth, firestore, router, toast]);
 
   const signup = useCallback(async (fullName: string, email: string, password: string) => {
       try {
