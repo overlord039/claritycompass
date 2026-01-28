@@ -3,6 +3,7 @@ import { ProfileAnalysisCard } from '@/components/dashboard/cards/profile-analys
 import { NextMissionCard } from '@/components/dashboard/cards/next-mission-card';
 import { JournalCard } from '@/components/dashboard/cards/journal-card';
 import { SessionsCard } from '@/components/dashboard/cards/sessions-card';
+import { ShortlistedUniversitiesCard } from '@/components/dashboard/cards/shortlisted-universities-card';
 
 export default function DashboardPage() {
   return (
@@ -18,6 +19,9 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <JournalCard />
         <SessionsCard />
+      </div>
+      <div className="grid grid-cols-1 gap-6">
+        <ShortlistedUniversitiesCard />
       </div>
     </div>
   );
