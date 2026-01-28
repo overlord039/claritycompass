@@ -72,11 +72,28 @@ const steps = [
 ];
 
 const degreeOptions = [
-    { value: 'Bachelor of Science', label: 'Bachelor of Science (B.S.)' },
-    { value: 'Bachelor of Arts', label: 'Bachelor of Arts (B.A.)' },
-    { value: 'Master of Science', label: 'Master of Science (M.S.)' },
-    { value: 'Master of Business Administration', label: 'Master of Business Administration (MBA)' },
-    { value: 'Doctor of Philosophy', label: 'Doctor of Philosophy (Ph.D.)' },
+    { value: 'Diploma', label: 'Diploma' },
+    { value: 'ITI', label: 'ITI' },
+    { value: 'B.Tech / B.E', label: 'B.Tech / B.E (Bachelor of Technology / Engineering)' },
+    { value: 'B.Sc', label: 'B.Sc (Bachelor of Science)' },
+    { value: 'B.Com', label: 'B.Com (Bachelor of Commerce)' },
+    { value: 'B.A', label: 'B.A (Bachelor of Arts)' },
+    { value: 'BCA', label: 'BCA (Bachelor of Computer Applications)' },
+    { value: 'BBA', label: 'BBA (Bachelor of Business Administration)' },
+    { value: 'MBBS', label: 'MBBS' },
+    { value: 'B.Pharm', label: 'B.Pharm' },
+    { value: 'LLB', label: 'LLB' },
+    { value: 'M.Tech / M.E', label: 'M.Tech / M.E (Master of Technology / Engineering)' },
+    { value: 'M.Sc', label: 'M.Sc (Master of Science)' },
+    { value: 'M.Com', label: 'M.Com (Master of Commerce)' },
+    { value: 'M.A', label: 'M.A (Master of Arts)' },
+    { value: 'MCA', label: 'MCA (Master of Computer Applications)' },
+    { value: 'MBA', label: 'MBA (Master of Business Administration)' },
+    { value: 'M.Pharm', label: 'M.Pharm' },
+    { value: 'LLM', label: 'LLM' },
+    { value: 'PhD / Doctorate', label: 'PhD / Doctorate' },
+    { value: 'Post Graduate Diploma', label: 'Post Graduate Diploma (PGDM / PGD)' },
+    { value: 'Integrated Degree', label: 'Integrated Degree' },
 ];
 const degreeOptionValues = degreeOptions.map(o => o.value);
 
