@@ -2,7 +2,8 @@
 
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
-import type { AppUser, UserProfile, UserState, ShortlistedUniversity, ApplicationTask } from '@/lib/types';
+import type { AppUser, UserProfile, UserState, ShortlistedUniversity, ApplicationTask, ProfileStrength } from '@/lib/types';
+import type { AssessProfileOutput } from '@/ai/flows/ai-profile-assessment';
 import { useRouter } from 'next/navigation';
 import { 
     useUser, 
@@ -39,6 +40,11 @@ type AuthContextType = {
   unlockUniversities: () => Promise<void>;
   updateTasks: (tasks: {title: string, completed: boolean}[]) => Promise<void>;
   updateTaskStatus: (taskId: string, completed: boolean) => Promise<void>;
+  shortlistedUniversities: string[];
+  lockedUniversities: string[];
+  applicationTasks: ApplicationTask[];
+  profileStrength: ProfileStrength | null;
+  updateProfileStrength: (strength: AssessProfileOutput) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -237,7 +243,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     batch.set(stateRef, { currentStage: 2 }, { merge: true });
     
     await batch.commit();
-    setAuthProviderLoading(false);
+    // No longer needed, useEffect will handle the redirect
+    // setAuthProviderLoading(false); 
   }, [firestore, firebaseUser]);
   
   const setStage = async (stage: number) => {
@@ -329,6 +336,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await updateDoc(taskRef, { completed });
   }, [firestore, firebaseUser]);
 
+  const updateProfileStrength = useCallback(async (strength: AssessProfileOutput) => {
+    if (!firebaseUser) return;
+    const stateRef = doc(firestore, 'user_state', firebaseUser.uid);
+    const dataToUpdate = {
+      profileStrength: {
+        academics: strength.academicStrength as ProfileStrength['academics'],
+        exams: strength.examReadiness as ProfileStrength['exams'],
+        sop: strength.sopReadiness as ProfileStrength['sop'],
+      },
+      recommendations: strength.recommendations,
+    };
+    await setDoc(stateRef, dataToUpdate, { merge: true });
+  }, [firestore, firebaseUser]);
 
   const value = useMemo(() => ({
     user: appUser,
@@ -346,7 +366,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     unlockUniversities,
     updateTasks,
     updateTaskStatus,
-  }), [appUser, authProviderLoading, login, signup, googleSignIn, sendPasswordReset, logout, updateProfile, setStage, shortlistUniversity, removeShortlistedUniversity, lockUniversities, unlockUniversities, updateTasks, updateTaskStatus]);
+    shortlistedUniversities: appUser?.shortlistedUniversities || [],
+    lockedUniversities: appUser?.lockedUniversities || [],
+    applicationTasks: appUser?.applicationTasks || [],
+    profileStrength: appUser?.state?.profileStrength || null,
+    updateProfileStrength,
+  }), [appUser, authProviderLoading, login, signup, googleSignIn, sendPasswordReset, logout, updateProfile, setStage, shortlistUniversity, removeShortlistedUniversity, lockUniversities, unlockUniversities, updateTasks, updateTaskStatus, updateProfileStrength]);
 
   return (
     <AuthContext.Provider value={value}>
