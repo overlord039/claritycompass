@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -46,15 +47,15 @@ service cloud.firestore {
       allow list: if false;
     }
 
-    // tasks/{uid}/{taskId}: User-specific tasks.
-    match /tasks/{userId}/{taskId} {
+    // tasks/{uid}/items/{taskId}: User-specific tasks.
+    match /tasks/{userId}/items/{taskId} {
       allow list, get: if isOwner(userId);
       allow create: if isCreatingOwnSubDoc(userId);
       allow update, delete: if isOwner(userId) && isOwnerOf(resource.data);
     }
     
-    // shortlisted_universities/{uid}/{universityId}: User's university choices.
-    match /shortlisted_universities/{userId}/{universityId} {
+    // shortlisted_universities/{uid}/items/{universityId}: User's university choices.
+    match /shortlisted_universities/{userId}/items/{universityId} {
       allow list, get: if isOwner(userId);
       allow create: if isCreatingOwnSubDoc(userId);
       allow update, delete: if isOwner(userId) && isOwnerOf(resource.data);

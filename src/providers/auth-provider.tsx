@@ -21,7 +21,7 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, writeBatch, collection } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 type AuthContextType = {
@@ -60,8 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const userBaseRef = useMemoFirebase(() => firestore && firebaseUser ? doc(firestore, 'users', firebaseUser.uid) : null, [firestore, firebaseUser]);
   const userProfileRef = useMemoFirebase(() => firestore && firebaseUser ? doc(firestore, 'profiles', firebaseUser.uid) : null, [firestore, firebaseUser]);
   const userStateRef = useMemoFirebase(() => firestore && firebaseUser ? doc(firestore, 'user_state', firebaseUser.uid) : null, [firestore, firebaseUser]);
-  const shortlistedUniversitiesRef = useMemoFirebase(() => firestore && firebaseUser ? doc(firestore, 'shortlisted_universities', firebaseUser.uid) : null, [firestore, firebaseUser]);
-  const tasksRef = useMemoFirebase(() => firestore && firebaseUser ? doc(firestore, 'tasks', firebaseUser.uid) : null, [firestore, firebaseUser]);
+  const shortlistedUniversitiesRef = useMemoFirebase(() => firestore && firebaseUser ? collection(firestore, 'shortlisted_universities', firebaseUser.uid, 'items') : null, [firestore, firebaseUser]);
+  const tasksRef = useMemoFirebase(() => firestore && firebaseUser ? collection(firestore, 'tasks', firebaseUser.uid, 'items') : null, [firestore, firebaseUser]);
   
   const { data: userBase, isLoading: loadingBase } = useDoc<AppUser>(userBaseRef);
   const { data: userProfile, isLoading: loadingProfile } = useDoc<UserProfile>(userProfileRef);
@@ -100,6 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // --- Mutation Functions ---
   const signup = useCallback(async (fullName: string, email: string, password: string) => {
+    setAuthProviderLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -133,19 +134,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         toast({ variant: 'destructive', title: 'Sign up failed', description: 'An unexpected error occurred. Please try again.' });
       }
+    } finally {
+        setAuthProviderLoading(false);
     }
   }, [auth, firestore, router, toast]);
 
   const login = useCallback(async (email: string, password: string) => {
+    setAuthProviderLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      // The state composition effect will handle fetching data and redirection via useEffect
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data() as AppUser;
+        handleRedirect(userData);
+      } else {
+         // This case should ideally not happen if signup is correct
+         await logout();
+         toast({ variant: 'destructive', title: 'Login Failed', description: 'User profile not found.' });
+      }
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Login failed', description: 'Invalid email or password.' });
+    } finally {
+        setAuthProviderLoading(false);
     }
-  }, [auth, toast]);
+  }, [auth, firestore, toast, router]);
 
   const googleSignIn = useCallback(async () => {
+    setAuthProviderLoading(true);
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
@@ -153,10 +171,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userDocRef = doc(firestore, 'users', user.uid);
       const userDocSnap = await getDoc(userDocRef);
 
+      let userData: AppUser;
       if (!userDocSnap.exists()) {
         const batch = writeBatch(firestore);
 
-        const newUser: Omit<AppUser, 'profile' | 'state' | 'shortlisted' | 'tasks'> = {
+        const newUserBase: Omit<AppUser, 'profile' | 'state' | 'shortlisted' | 'tasks'> = {
           id: user.uid,
           email: user.email,
           fullName: user.displayName,
@@ -164,7 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           currentStage: 1,
           createdAt: serverTimestamp(),
         };
-        batch.set(userDocRef, newUser);
+        batch.set(userDocRef, newUserBase);
 
         const newUserStateRef = doc(firestore, 'user_state', user.uid);
         const newUserState: UserState = {
@@ -175,12 +194,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         batch.set(newUserStateRef, newUserState);
 
         await batch.commit();
+        userData = { ...newUserBase, profile: null, state: newUserState, shortlisted: [], tasks: [] };
+      } else {
+        userData = userDocSnap.data() as AppUser;
       }
-       // The state composition effect will handle fetching data and redirection
+      handleRedirect(userData);
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Google Sign-In failed', description: 'Could not complete sign-in.' });
+    } finally {
+        setAuthProviderLoading(false);
     }
-  }, [auth, firestore, toast]);
+  }, [auth, firestore, toast, router]);
 
   const sendPasswordReset = useCallback(async (email: string) => {
     try {
@@ -199,6 +223,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateProfile = useCallback(async (profileData: UserProfile) => {
     if (!firebaseUser) return;
+    setAuthProviderLoading(true);
     const batch = writeBatch(firestore);
 
     const profileRef = doc(firestore, 'profiles', firebaseUser.uid);
@@ -211,7 +236,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     batch.update(stateRef, { currentStage: 2 });
     
     await batch.commit();
-    // Redirection will be handled by useEffect watching user state
+    // No need to redirect here, the effect on `user` will do it.
+    setAuthProviderLoading(false);
   }, [firestore, firebaseUser]);
   
   const setStage = async (stage: number) => {
