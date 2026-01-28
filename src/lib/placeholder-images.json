@@ -1,3 +1,40 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "university-1",
+      "description": "A grand university building with a clock tower and a green lawn.",
+      "imageUrl": "https://images.unsplash.com/photo-1619512673224-91cfb2688284?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx1bml2ZXJzaXR5JTIwY2FtcHVzfGVufDB8fHx8MTc2OTQ4OTgzOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "university campus"
+    },
+    {
+      "id": "university-2",
+      "description": "A modern university library with large windows and many books.",
+      "imageUrl": "https://images.unsplash.com/photo-1580537659466-0a9bfa916a54?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx1bml2ZXJzaXR5JTIwbGlicmFyeXxlbnwwfHx8fDE3Njk1NzY4NzN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "university library"
+    },
+    {
+      "id": "university-3",
+      "description": "Students walking on a university campus path with autumn trees.",
+      "imageUrl": "https://images.unsplash.com/photo-1693011142814-aa33d7d1535c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzdHVkZW50cyUyMGNhbXB1c3xlbnwwfHx8fDE3Njk1NzY4NzN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "students campus"
+    },
+    {
+      "id": "university-4",
+      "description": "An aerial view of a sprawling university campus with many buildings.",
+      "imageUrl": "https://images.unsplash.com/photo-1629339569419-4af602a862ca?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx1bml2ZXJzaXR5JTIwYWVyaWFsfGVufDB8fHx8MTc2OTQ5NjYyN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "university aerial"
+    },
+    {
+      "id": "university-5",
+      "description": "A university lecture hall filled with students.",
+      "imageUrl": "https://images.unsplash.com/photo-1703680968885-22659eb00165?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxsZWN0dXJlJTIwaGFsbHxlbnwwfHx8fDE3Njk1NzA0NjN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "lecture hall"
+    },
+    {
+      "id": "university-6",
+      "description": "A quiet study area in a university with modern architecture.",
+      "imageUrl": "https://images.unsplash.com/photo-1506188232657-23c9c893ac2b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxzdHVkeSUyMGFyZWF8ZW58MHx8fHwxNzY5NTc2ODczfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "study area"
+    }
+  ]
 }
