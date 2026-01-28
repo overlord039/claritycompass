@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 208 100% 98%;
+    --background: 208 20% 97%; /* Desaturated Light Pastel Blue */
     --foreground: 224 71% 4%;
 
     --card: 0 0% 100%;
@@ -13,8 +13,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 224 71% 4%;
 
-    --primary: 254 44% 78%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 254 44% 78%; /* Gentle Violet */
+    --primary-foreground: 224 71% 4%;
 
     --secondary: 240 67% 97%;
     --secondary-foreground: 224 71% 4%;
@@ -22,7 +22,7 @@
     --muted: 240 5% 96%;
     --muted-foreground: 240 4% 46%;
 
-    --accent: 254 44% 90%;
+    --accent: 240 67% 97%; /* Soft Lavender */
     --accent-foreground: 224 71% 4%;
 
     --destructive: 0 84% 60%;
@@ -52,7 +52,7 @@
     --popover-foreground: 208 100% 98%;
 
     --primary: 254 44% 78%;
-    --primary-foreground: 0 0% 100%;
+    --primary-foreground: 224 71% 4%;
 
     --secondary: 240 3% 15%;
     --secondary-foreground: 0 0% 100%;
@@ -78,7 +78,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-image: linear-gradient(to bottom, #FFFFFF, #E6E6FA, #F0F8FF);
+    background-image: linear-gradient(to bottom, #F0F8FF, #E6E6FA);
     min-height: 100vh;
   }
 }

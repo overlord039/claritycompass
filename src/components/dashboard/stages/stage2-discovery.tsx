@@ -36,16 +36,17 @@ const transformProfileForDiscovery = (profile: UserProfile): Omit<UniversityDisc
 
 function UniversityCard({ university, onShortlist, isShortlisted }: { university: University; onShortlist: () => void; isShortlisted: boolean }) {
     return (
-        <Card className="overflow-hidden flex flex-col h-full bg-background/50">
+        <Card className="overflow-hidden flex flex-col h-full bg-background/50 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 transition-all duration-300 group">
              <div className="relative w-full h-40">
                 <Image
                     src={university.imageUrl}
                     alt={`Campus of ${university.name}`}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-cover"
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
                     data-ai-hint={university.imageHint}
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
             </div>
             <CardHeader>
                 <CardTitle className="text-lg">{university.name}</CardTitle>

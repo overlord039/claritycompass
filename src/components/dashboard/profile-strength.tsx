@@ -55,14 +55,14 @@ export function ProfileStrength() {
             case 'Strong':
             case 'Completed':
             case 'Ready':
-                return 'text-green-600 bg-green-100';
+                return 'text-green-600 bg-green-500/10 border-green-500/20';
             case 'Average':
             case 'In progress':
             case 'Draft':
-                return 'text-amber-600 bg-amber-100';
+                return 'text-amber-600 bg-amber-500/10 border-amber-500/20';
             case 'Weak':
             case 'Not started':
-                return 'text-red-600 bg-red-100';
+                return 'text-red-600 bg-red-500/10 border-red-500/20';
             default:
                 return 'text-muted-foreground bg-muted';
         }
@@ -77,10 +77,10 @@ export function ProfileStrength() {
              <div className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {strengthItems.map(item => (
-                        <div key={item.label} className="p-4 rounded-lg bg-background border flex flex-col items-center text-center">
+                        <div key={item.label} className="p-4 rounded-lg bg-background/30 border flex flex-col items-center text-center">
                             <item.icon className="w-7 h-7 text-primary mb-2" />
                             <p className="font-semibold text-foreground mb-1">{item.label}</p>
-                            <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-medium', getStrengthColor(item.value))}>
+                            <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-medium border', getStrengthColor(item.value))}>
                                 {item.value || 'N/A'}
                             </span>
                         </div>
@@ -98,14 +98,14 @@ export function ProfileStrength() {
 
     return (
         <AccordionItem value="strength" className="border-none">
-            <AccordionTrigger className="text-lg font-semibold hover:no-underline font-headline p-4 bg-card rounded-lg shadow-sm data-[state=open]:rounded-b-none">
+            <AccordionTrigger className="text-lg font-semibold hover:no-underline font-headline p-4 bg-card/70 backdrop-blur-lg rounded-lg shadow-lg shadow-primary/5 data-[state=open]:rounded-b-none transition-all hover:bg-accent/70">
                  <div className="flex items-center gap-3">
-                    <Zap />
+                    <Zap className="text-primary/80"/>
                     AI Profile Strength
                 </div>
             </AccordionTrigger>
             <AccordionContent className="p-0">
-                <Card className="rounded-t-none backdrop-blur-sm bg-card/80 border-t-0">
+                <Card className="rounded-t-none backdrop-blur-lg bg-card/50 border-t-0">
                     <CardContent className="p-6">
                         {renderContent()}
                     </CardContent>

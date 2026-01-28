@@ -15,14 +15,14 @@ export function TodoList() {
     if (user?.currentStage !== 4) {
         return (
             <AccordionItem value="todo" className="border-none">
-                <AccordionTrigger className="text-lg font-semibold hover:no-underline font-headline p-4 bg-card rounded-lg shadow-sm data-[state=open]:rounded-b-none" disabled>
+                <AccordionTrigger className="text-lg font-semibold hover:no-underline font-headline p-4 bg-card/70 backdrop-blur-lg rounded-lg shadow-lg shadow-primary/5 transition-all" disabled>
                      <div className="flex items-center gap-3 text-muted-foreground">
                         <ListTodo />
                         Application To-Do List
                     </div>
                 </AccordionTrigger>
                 <AccordionContent>
-                    <Card className="rounded-t-none backdrop-blur-sm bg-card/80 border-t-0">
+                    <Card className="rounded-t-none backdrop-blur-lg bg-card/50 border-t-0">
                         <CardContent className="p-6 text-center text-muted-foreground">
                             Lock a university to generate your personalized application tasks.
                         </CardContent>
@@ -37,14 +37,14 @@ export function TodoList() {
 
     return (
         <AccordionItem value="todo" className="border-none">
-            <AccordionTrigger className="text-lg font-semibold hover:no-underline font-headline p-4 bg-card rounded-lg shadow-sm data-[state=open]:rounded-b-none">
+            <AccordionTrigger className="text-lg font-semibold hover:no-underline font-headline p-4 bg-card/70 backdrop-blur-lg rounded-lg shadow-lg shadow-primary/5 data-[state=open]:rounded-b-none transition-all hover:bg-accent/70">
                 <div className="flex items-center gap-3">
-                    <ClipboardCheck />
+                    <ClipboardCheck className="text-primary/80"/>
                     Application To-Do List
                 </div>
             </AccordionTrigger>
             <AccordionContent className="p-0">
-                <Card className="rounded-t-none backdrop-blur-sm bg-card/80 border-t-0">
+                <Card className="rounded-t-none backdrop-blur-lg bg-card/50 border-t-0">
                     <CardContent className="p-6 space-y-4">
                         {tasks.length > 0 ? (
                             <>
@@ -54,7 +54,7 @@ export function TodoList() {
                                 </div>
                                 <div className="space-y-3">
                                     {tasks.map(task => (
-                                        <div key={task.id} className="flex items-center space-x-3 p-3 rounded-md bg-background border">
+                                        <div key={task.id} className="flex items-center space-x-3 p-3 rounded-md bg-background/30 border">
                                             <Checkbox 
                                                 id={`task-${task.id}`} 
                                                 checked={task.completed}

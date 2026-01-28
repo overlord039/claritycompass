@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Lock, ThumbsDown, Trash2, ArrowLeft } from 'lucide-react';
+import { Lock, ThumbsDown, ArrowLeft } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 export default function Stage3Finalize() {
@@ -48,9 +48,10 @@ export default function Stage3Finalize() {
                     {shortlisted.map(uni => {
                         const isSelected = selectedToLock.includes(uni.name);
                         return (
-                            <Card key={uni.id} className={`overflow-hidden flex flex-col h-full transition-all duration-300 ${isSelected ? 'ring-2 ring-primary shadow-2xl' : 'bg-background/50'}`}>
+                            <Card key={uni.id} className={`group overflow-hidden flex flex-col h-full transition-all duration-300 ${isSelected ? 'ring-2 ring-primary shadow-2xl shadow-primary/30' : 'bg-background/50'}`}>
                                 <div className="relative w-full h-40">
-                                    <Image src={uni.imageUrl} alt={`Campus of ${uni.name}`} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover" data-ai-hint={uni.imageHint}/>
+                                    <Image src={uni.imageUrl} alt={`Campus of ${uni.name}`} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover transition-transform duration-300 group-hover:scale-105" data-ai-hint={uni.imageHint}/>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                                 </div>
                                 <CardHeader>
                                     <CardTitle className="text-lg">{uni.name}</CardTitle>

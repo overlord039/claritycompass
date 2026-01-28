@@ -15,42 +15,40 @@ interface StageIndicatorProps {
 export function StageIndicator({ currentStage }: StageIndicatorProps) {
   return (
     <div aria-label="Application Process Stage">
-      <nav className="flex items-center justify-center" aria-label="Progress">
-        <ol role="list" className="flex items-center space-x-2 md:space-x-4">
-          {stages.map((stage, stageIdx) => (
-            <li key={stage.name} className={cn('flex-1')}>
-              {currentStage > stage.id ? (
-                <div className="group flex w-full flex-col items-center">
-                  <span className="flex items-center">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
-                      <Check className="h-6 w-6 text-primary-foreground" aria-hidden="true" />
-                    </span>
-                  </span>
-                  <span className="mt-2 text-xs md:text-sm font-medium text-center">{stage.name}</span>
-                </div>
-              ) : currentStage === stage.id ? (
-                <div className="group flex w-full flex-col items-center" aria-current="step">
-                  <span className="flex items-center">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-primary">
-                      <span className="text-primary text-sm font-semibold">{`0${stage.id}`}</span>
-                    </span>
-                  </span>
-                   <span className="mt-2 text-xs md:text-sm font-medium text-primary text-center">{stage.name}</span>
-                </div>
-              ) : (
-                 <div className="group flex w-full flex-col items-center">
-                  <span className="flex items-center">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-border">
-                       <span className="text-muted-foreground text-sm font-semibold">{`0${stage.id}`}</span>
-                    </span>
-                  </span>
-                   <span className="mt-2 text-xs md:text-sm font-medium text-muted-foreground text-center">{stage.name}</span>
-                </div>
-              )}
-            </li>
-          ))}
-        </ol>
-      </nav>
+      <ol role="list" className="flex items-center">
+        {stages.map((stage, stageIdx) => (
+          <li key={stage.name} className={cn('relative flex-1')}>
+            <div className="flex flex-col items-center text-center">
+                {currentStage > stage.id ? (
+                    <>
+                        <div className="absolute inset-0 top-5 -z-10 w-full h-0.5 bg-primary" aria-hidden="true" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
+                            <Check className="h-6 w-6 text-primary-foreground" aria-hidden="true" />
+                        </div>
+                        <p className="mt-2 text-xs md:text-sm font-medium text-foreground">{stage.name}</p>
+                    </>
+                ) : currentStage === stage.id ? (
+                    <>
+                        <div className="absolute inset-0 top-5 -z-10 w-full h-0.5 bg-border" aria-hidden="true" />
+                        <div className="absolute right-0 top-5 -z-10 w-1/2 h-0.5 bg-primary" aria-hidden="true" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-primary bg-background animate-pulse-glow">
+                            <span className="text-primary text-sm font-semibold">{`0${stage.id}`}</span>
+                        </div>
+                        <p className="mt-2 text-xs md:text-sm font-medium text-primary">{stage.name}</p>
+                    </>
+                ) : (
+                    <>
+                         <div className="absolute inset-0 top-5 -z-10 w-full h-0.5 bg-border" aria-hidden="true" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-border bg-background">
+                            <span className="text-muted-foreground text-sm font-semibold">{`0${stage.id}`}</span>
+                        </div>
+                        <p className="mt-2 text-xs md:text-sm font-medium text-muted-foreground">{stage.name}</p>
+                    </>
+                )}
+            </div>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }

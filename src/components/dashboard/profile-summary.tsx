@@ -15,7 +15,7 @@ export function ProfileSummary() {
             <AccordionItem value="summary">
                 <AccordionTrigger className="text-lg font-semibold font-headline">Profile Summary</AccordionTrigger>
                 <AccordionContent>
-                    <Card className="backdrop-blur-sm bg-card/80">
+                    <Card className="backdrop-blur-sm bg-card/60">
                         <CardContent className="p-6">
                             <Skeleton className="h-32 w-full" />
                         </CardContent>
@@ -35,14 +35,14 @@ export function ProfileSummary() {
 
     return (
         <AccordionItem value="summary" className="border-none">
-            <AccordionTrigger className="text-lg font-semibold hover:no-underline font-headline p-4 bg-card rounded-lg shadow-sm data-[state=open]:rounded-b-none">
+            <AccordionTrigger className="text-lg font-semibold hover:no-underline font-headline p-4 bg-card/70 backdrop-blur-lg rounded-lg shadow-lg shadow-primary/5 data-[state=open]:rounded-b-none transition-all hover:bg-accent/70">
                 <div className="flex items-center gap-3">
-                    <User />
+                    <User className="text-primary/80"/>
                     Profile Summary
                 </div>
             </AccordionTrigger>
             <AccordionContent className="p-0">
-                <Card className="rounded-t-none backdrop-blur-sm bg-card/80 border-t-0">
+                <Card className="rounded-t-none backdrop-blur-lg bg-card/50 border-t-0">
                     <CardContent className="p-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
                             {summaryItems.map(item => (

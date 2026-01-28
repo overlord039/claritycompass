@@ -32,21 +32,21 @@ export function AiGuidance() {
 
   if (loading) {
     return (
-        <Card className="bg-accent/50 border-accent shadow-sm">
+        <Card className="bg-primary/10 backdrop-blur-xl border border-primary/20 shadow-lg shadow-primary/10">
             <CardHeader>
-                <CardTitle className="flex items-center gap-2 font-headline">
-                    <Lightbulb className="text-primary" />
+                <CardTitle className="flex items-center gap-3 font-headline">
+                    <Lightbulb className="text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]" />
                     AI Counsellor Guidance
                 </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-               <Skeleton className="h-4 w-full" />
-               <Skeleton className="h-4 w-3/4" />
+            <CardContent className="space-y-4 pt-4">
+               <Skeleton className="h-4 w-full bg-primary/20" />
+               <Skeleton className="h-4 w-3/4 bg-primary/20" />
                <div className="pt-4">
                 <h3 className="font-semibold mb-2 flex items-center gap-2"><ListChecks size={18} /> Next Actions:</h3>
                 <ul className="space-y-2">
-                    <li><Skeleton className="h-4 w-1/2" /></li>
-                    <li><Skeleton className="h-4 w-2/3" /></li>
+                    <li><Skeleton className="h-4 w-1/2 bg-primary/20" /></li>
+                    <li><Skeleton className="h-4 w-2/3 bg-primary/20" /></li>
                 </ul>
                </div>
             </CardContent>
@@ -57,10 +57,10 @@ export function AiGuidance() {
   if (!guidance) return null;
 
   return (
-    <Card className="bg-accent/50 border-accent shadow-sm backdrop-blur-sm">
+    <Card className="bg-primary/10 backdrop-blur-xl border border-primary/20 shadow-lg shadow-primary/10">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 font-headline">
-          <Lightbulb className="text-primary" />
+        <CardTitle className="flex items-center gap-3 font-headline">
+          <Lightbulb className="text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]" />
           AI Counsellor Guidance
         </CardTitle>
       </CardHeader>

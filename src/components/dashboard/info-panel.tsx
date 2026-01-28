@@ -6,7 +6,7 @@ import { TodoList } from './todo-list';
 export function InfoPanel() {
     return (
         <div className="space-y-4">
-             <h2 className="text-2xl font-bold tracking-tight text-center font-headline">Your Control Center</h2>
+             <h2 className="text-2xl font-bold tracking-tight text-center font-headline text-foreground/80">Your Control Center</h2>
             <Accordion type="multiple" defaultValue={['summary', 'strength', 'todo']} className="w-full space-y-4">
                 <ProfileSummary />
                 <ProfileStrength />
