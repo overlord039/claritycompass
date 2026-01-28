@@ -12,20 +12,20 @@ import type { University } from '@/lib/types';
 
 function MiniUniversityCard({ university }: { university: University }) {
     return (
-        <div className="flex items-center gap-4 p-3 rounded-lg bg-background/50 hover:bg-accent transition-colors">
-            <Image
+        <div className="p-3 rounded-lg bg-background/50 hover:bg-accent transition-colors border flex flex-col h-full text-center items-center">
+             <Image
                 src={university.imageUrl}
                 alt={university.name}
-                width={56}
-                height={56}
-                className="rounded-md object-cover h-14 w-14"
+                width={64}
+                height={64}
+                className="rounded-md object-cover h-16 w-16 mb-3 flex-shrink-0"
                 data-ai-hint={university.imageHint}
             />
-            <div className="flex-1">
-                <p className="font-semibold text-sm">{university.name}</p>
+            <div className="flex-grow flex flex-col justify-center">
+                <p className="font-semibold text-sm leading-tight">{university.name}</p>
                 <p className="text-xs text-muted-foreground">{university.country}</p>
             </div>
-            <Badge variant="secondary">{university.acceptanceChance}</Badge>
+             <Badge variant="secondary" className="mt-2 flex-shrink-0">{university.acceptanceChance}</Badge>
         </div>
     );
 }
@@ -49,11 +49,13 @@ export function ShortlistedUniversitiesCard() {
             <CardContent className="flex-grow">
                 {universities.length > 0 ? (
                     <div className="space-y-3">
-                        {universities.slice(0, 4).map(uni => (
-                           <Link href="/dashboard/discover" key={uni.id}>
-                             <MiniUniversityCard university={uni} />
-                           </Link>
-                        ))}
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                            {universities.slice(0, 4).map(uni => (
+                               <Link href="/dashboard/discover" key={uni.id} className="block h-full">
+                                 <MiniUniversityCard university={uni} />
+                               </Link>
+                            ))}
+                        </div>
                          {universities.length > 4 && (
                             <Button variant="outline" className="w-full mt-2" asChild>
                                 <Link href="/dashboard/discover">View all {universities.length} shortlisted</Link>
