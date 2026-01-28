@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CircularProgress } from '@/components/ui/circular-progress';
-import { GraduationCap, Trophy } from 'lucide-react';
+import { GraduationCap, Trophy, Wallet, BookOpen } from 'lucide-react';
 import type { ProfileStrength } from '@/lib/types';
 import { useMemo } from 'react';
 
@@ -45,7 +45,9 @@ export function ProfileAnalysisCard() {
             <CardHeader className="flex flex-row items-start justify-between">
                 <div>
                     <CardTitle className="text-xl font-semibold">Profile Analysis</CardTitle>
-                    <CardDescription>AI-powered summary of your strengths.</CardDescription>
+                    <CardDescription>
+                        Hey {user?.fullName?.split(' ')[0] || 'there'}, here's an AI-powered summary of your profile.
+                    </CardDescription>
                 </div>
                 <Badge variant={profileStatus.variant}>
                     {profileStatus.text}
@@ -60,7 +62,7 @@ export function ProfileAnalysisCard() {
                     </div>
                 </div>
 
-                <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="flex items-center gap-4 p-4 rounded-lg bg-background/50">
                         <div className="p-3 bg-accent rounded-md">
                             <GraduationCap className="h-6 w-6 text-accent-foreground" />
@@ -77,6 +79,28 @@ export function ProfileAnalysisCard() {
                         <div>
                             <p className="text-sm text-muted-foreground">GPA</p>
                             <p className="font-semibold text-foreground">{user?.profile?.academic.gpa || 'N/A'}</p>
+                        </div>
+                    </div>
+                     <div className="flex items-center gap-4 p-4 rounded-lg bg-background/50">
+                         <div className="p-3 bg-accent rounded-md">
+                            <Wallet className="h-6 w-6 text-accent-foreground" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Budget / Year</p>
+                            <p className="font-semibold text-foreground truncate">{user?.profile?.budget.budgetRangePerYear || 'N/A'}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4 p-4 rounded-lg bg-background/50">
+                         <div className="p-3 bg-accent rounded-md">
+                            <BookOpen className="h-6 w-6 text-accent-foreground" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Exams</p>
+                            <p className="font-semibold text-foreground text-xs">
+                                IELTS: {user?.profile?.readiness.ieltsStatus || 'N/A'}
+                                <br/>
+                                GRE: {user?.profile?.readiness.greStatus || 'N/A'}
+                            </p>
                         </div>
                     </div>
                 </div>
