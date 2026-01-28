@@ -181,8 +181,6 @@ export default function OnboardingPage() {
       }
     };
     await updateProfile(profileData);
-    // After creating or updating profile, go to dashboard
-    router.push('/dashboard');
   }
 
   const delta = currentStep - previousStep;
@@ -267,7 +265,7 @@ export default function OnboardingPage() {
                             <FormItem><FormLabel>Graduation Year</FormLabel><FormControl><Input placeholder="e.g., 2023" {...field} /></FormControl><FormMessage /></FormItem>
                         )}/>
                         <FormField name="academic.gpa" control={form.control} render={({ field }) => (
-                            <FormItem><FormLabel>GPA (Optional)</FormLabel><FormControl><Input placeholder="e.g., 3.8 / 4.0" {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>GPA (Optional)</FormLabel><FormControl><Input placeholder="e.g., 8.5 / 10.0" {...field} /></FormControl><FormMessage /></FormItem>
                         )}/>
                       </div>
                     </div>
