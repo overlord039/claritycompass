@@ -32,7 +32,7 @@ export function TodoList() {
         );
     }
     
-    const completedTasks = tasks.filter(task => task.status === 'Completed').length;
+    const completedTasks = tasks.filter(task => task.completed).length;
     const progress = tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0;
 
     return (
@@ -57,14 +57,14 @@ export function TodoList() {
                                         <div key={task.id} className="flex items-center space-x-3 p-3 rounded-md bg-background border">
                                             <Checkbox 
                                                 id={`task-${task.id}`} 
-                                                checked={task.status === 'Completed'}
-                                                onCheckedChange={(checked) => updateTaskStatus(task.id, checked ? 'Completed' : 'In progress')}
+                                                checked={task.completed}
+                                                onCheckedChange={(checked) => updateTaskStatus(task.id, !!checked)}
                                             />
                                             <Label 
                                                 htmlFor={`task-${task.id}`} 
-                                                className={`flex-grow ${task.status === 'Completed' ? 'text-muted-foreground line-through' : ''}`}
+                                                className={`flex-grow ${task.completed ? 'text-muted-foreground line-through' : ''}`}
                                             >
-                                                {task.task}
+                                                {task.title}
                                             </Label>
                                         </div>
                                     ))}

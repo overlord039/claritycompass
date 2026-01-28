@@ -1,10 +1,9 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import React, from 'react';
-import { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import type { AppUser, UserProfile, UserState, ShortlistedUniversity, ApplicationTask } from '@/lib/types';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { 
     useUser, 
     useFirestore, 
@@ -21,7 +20,7 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp, writeBatch, collection } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, writeBatch, collection, deleteDoc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 type AuthContextType = {
@@ -34,12 +33,11 @@ type AuthContextType = {
   logout: () => Promise<void>;
   updateProfile: (profileData: UserProfile) => Promise<void>;
   setStage: (stage: number) => Promise<void>;
-  shortlistUniversity: (universityData: Omit<ShortlistedUniversity, 'userId' | 'id'>) => Promise<void>;
-  removeShortlistedUniversity: (universityId: string) => Promise<void>;
-  lockUniversities: (universityIds: string[]) => Promise<void>;
+  shortlistUniversity: (universityName: string) => Promise<void>;
+  removeShortlistedUniversity: (universityName: string) => Promise<void>;
+  lockUniversities: (universityNames: string[]) => Promise<void>;
   unlockUniversities: () => Promise<void>;
-  updateTask: (task: ApplicationTask) => Promise<void>;
-  updateTasks: (tasks: ApplicationTask[]) => Promise<void>;
+  updateTasks: (tasks: {title: string, completed: boolean}[]) => Promise<void>;
   updateTaskStatus: (taskId: string, completed: boolean) => Promise<void>;
 };
 
@@ -86,6 +84,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         state: userState || null,
         shortlisted: shortlisted || [],
         tasks: tasks || [],
+        // for convenience
+        shortlistedUniversities: (shortlisted || []).map(u => u.universityId),
+        lockedUniversities: (shortlisted || []).filter(u => u.locked).map(u => u.universityId),
+        applicationTasks: tasks || [],
       };
       setAppUser(combinedUser);
     }
@@ -99,6 +101,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // --- Mutation Functions ---
+  const logout = useCallback(async () => {
+    await signOut(auth);
+    setAppUser(null);
+    router.push('/login');
+  }, [auth, router]);
+  
   const signup = useCallback(async (fullName: string, email: string, password: string) => {
     setAuthProviderLoading(true);
     try {
@@ -108,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const batch = writeBatch(firestore);
 
       const newUserDocRef = doc(firestore, 'users', user.uid);
-      const newUser: Omit<AppUser, 'profile' | 'state' | 'shortlisted' | 'tasks'> = {
+      const newUser: Omit<AppUser, 'profile' | 'state' | 'shortlisted' | 'tasks' | 'shortlistedUniversities' | 'lockedUniversities' | 'applicationTasks'> = {
         id: user.uid,
         email: user.email,
         fullName: fullName,
@@ -151,7 +159,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userData = userDocSnap.data() as AppUser;
         handleRedirect(userData);
       } else {
-         // This case should ideally not happen if signup is correct
          await logout();
          toast({ variant: 'destructive', title: 'Login Failed', description: 'User profile not found.' });
       }
@@ -160,7 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
         setAuthProviderLoading(false);
     }
-  }, [auth, firestore, toast, router]);
+  }, [auth, firestore, toast, router, logout]);
 
   const googleSignIn = useCallback(async () => {
     setAuthProviderLoading(true);
@@ -175,7 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!userDocSnap.exists()) {
         const batch = writeBatch(firestore);
 
-        const newUserBase: Omit<AppUser, 'profile' | 'state' | 'shortlisted' | 'tasks'> = {
+        const newUserBase: Omit<AppUser, 'profile' | 'state' | 'shortlisted' | 'tasks'| 'shortlistedUniversities' | 'lockedUniversities' | 'applicationTasks'> = {
           id: user.uid,
           email: user.email,
           fullName: user.displayName,
@@ -194,7 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         batch.set(newUserStateRef, newUserState);
 
         await batch.commit();
-        userData = { ...newUserBase, profile: null, state: newUserState, shortlisted: [], tasks: [] };
+        userData = { ...newUserBase, profile: null, state: newUserState, shortlisted: [], tasks: [], shortlistedUniversities: [], lockedUniversities: [], applicationTasks: [] };
       } else {
         userData = userDocSnap.data() as AppUser;
       }
@@ -215,12 +222,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [auth, toast]);
 
-  const logout = useCallback(async () => {
-    await signOut(auth);
-    setAppUser(null);
-    router.push('/login');
-  }, [auth, router]);
-
   const updateProfile = useCallback(async (profileData: UserProfile) => {
     if (!firebaseUser) return;
     setAuthProviderLoading(true);
@@ -233,10 +234,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     batch.update(userRef, { onboardingComplete: true, currentStage: 2 });
     
     const stateRef = doc(firestore, 'user_state', firebaseUser.uid);
-    batch.update(stateRef, { currentStage: 2 });
+    batch.set(stateRef, { currentStage: 2 }, { merge: true });
     
     await batch.commit();
-    // No need to redirect here, the effect on `user` will do it.
     setAuthProviderLoading(false);
   }, [firestore, firebaseUser]);
   
@@ -244,18 +244,90 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!firebaseUser) return;
     const batch = writeBatch(firestore);
     batch.update(doc(firestore, 'users', firebaseUser.uid), { currentStage: stage });
-    batch.update(doc(firestore, 'user_state', firebaseUser.uid), { currentStage: stage });
+    batch.set(doc(firestore, 'user_state', firebaseUser.uid), { currentStage: stage }, { merge: true });
     await batch.commit();
   };
 
-  // Dummy implementations for now
-  const shortlistUniversity = async (universityData: Omit<ShortlistedUniversity, 'userId' | 'id'>) => {};
-  const removeShortlistedUniversity = async (universityId: string) => {};
-  const lockUniversities = async (universityIds: string[]) => {};
-  const unlockUniversities = async () => {};
-  const updateTask = async (task: ApplicationTask) => {};
-  const updateTasks = async (tasks: ApplicationTask[]) => {};
-  const updateTaskStatus = async (taskId: string, completed: boolean) => {};
+  const shortlistUniversity = useCallback(async (universityName: string) => {
+    if (!firebaseUser) return;
+    const newShortlistRef = doc(collection(firestore, 'users', firebaseUser.uid, 'shortlisted_universities'));
+    await setDoc(newShortlistRef, {
+      id: newShortlistRef.id,
+      userId: firebaseUser.uid,
+      universityId: universityName,
+      locked: false,
+    });
+  }, [firestore, firebaseUser]);
+
+  const removeShortlistedUniversity = useCallback(async (universityName: string) => {
+    if (!firebaseUser || !appUser) return;
+    const uniDoc = appUser.shortlisted.find(u => u.universityId === universityName);
+    if (uniDoc) {
+      await deleteDoc(doc(firestore, 'users', firebaseUser.uid, 'shortlisted_universities', uniDoc.id));
+    }
+  }, [firestore, firebaseUser, appUser]);
+
+  const lockUniversities = useCallback(async (universityNames: string[]) => {
+    if (!firebaseUser || !appUser) return;
+    const batch = writeBatch(firestore);
+    appUser.shortlisted
+      .filter(u => universityNames.includes(u.universityId))
+      .forEach(u => {
+        const docRef = doc(firestore, 'users', firebaseUser.uid, 'shortlisted_universities', u.id);
+        batch.update(docRef, { locked: true });
+      });
+    
+    batch.update(doc(firestore, 'users', firebaseUser.uid), { currentStage: 4 });
+    batch.set(doc(firestore, 'user_state', firebaseUser.uid), { currentStage: 4 }, { merge: true });
+
+    await batch.commit();
+  }, [firestore, firebaseUser, appUser]);
+  
+  const unlockUniversities = useCallback(async () => {
+    if (!firebaseUser || !appUser) return;
+    const batch = writeBatch(firestore);
+
+    appUser.shortlisted.forEach(u => {
+      if (u.locked) {
+        const docRef = doc(firestore, 'users', firebaseUser.uid, 'shortlisted_universities', u.id);
+        batch.update(docRef, { locked: false });
+      }
+    });
+
+    appUser.tasks.forEach(t => {
+        const taskRef = doc(firestore, 'users', firebaseUser.uid, 'tasks', t.id);
+        batch.delete(taskRef);
+    });
+
+    batch.update(doc(firestore, 'users', firebaseUser.uid), { currentStage: 3 });
+    batch.set(doc(firestore, 'user_state', firebaseUser.uid), { currentStage: 3 }, { merge: true });
+    
+    await batch.commit();
+  }, [firestore, firebaseUser, appUser]);
+
+  const updateTasks = useCallback(async (newTasks: {title: string, completed: boolean}[]) => {
+    if (!firebaseUser) return;
+    const batch = writeBatch(firestore);
+    newTasks.forEach(task => {
+        const taskRef = doc(collection(firestore, 'users', firebaseUser.uid, 'tasks'));
+        batch.set(taskRef, {
+            id: taskRef.id,
+            userId: firebaseUser.uid,
+            title: task.title,
+            stage: 4,
+            completed: task.completed,
+            generatedBy: 'AI',
+            createdAt: serverTimestamp(),
+        });
+    });
+    await batch.commit();
+  }, [firestore, firebaseUser]);
+
+  const updateTaskStatus = useCallback(async (taskId: string, completed: boolean) => {
+    if (!firebaseUser) return;
+    const taskRef = doc(firestore, 'users', firebaseUser.uid, 'tasks', taskId);
+    await updateDoc(taskRef, { completed });
+  }, [firestore, firebaseUser]);
 
 
   const value = useMemo(() => ({
@@ -272,10 +344,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     removeShortlistedUniversity,
     lockUniversities,
     unlockUniversities,
-    updateTask,
     updateTasks,
     updateTaskStatus,
-  }), [appUser, authProviderLoading, login, signup, googleSignIn, sendPasswordReset, logout, updateProfile]);
+  }), [appUser, authProviderLoading, login, signup, googleSignIn, sendPasswordReset, logout, updateProfile, setStage, shortlistUniversity, removeShortlistedUniversity, lockUniversities, unlockUniversities, updateTasks, updateTaskStatus]);
 
   return (
     <AuthContext.Provider value={value}>

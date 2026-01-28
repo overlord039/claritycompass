@@ -1,4 +1,5 @@
 
+
 // From users/{uid}
 export type UserBase = {
   id: string;
@@ -45,18 +46,15 @@ export type UserState = {
   recommendations: string | null;
 };
 
-// from shortlisted_universities/{uid}/{universityId}
+// from users/{uid}/shortlisted_universities/{docId}
 export type ShortlistedUniversity = {
-    id: string; // universityId
+    id: string; // docId
     userId: string;
-    universityId: string;
-    category: 'Dream' | 'Target' | 'Safe';
-    acceptanceChance: 'Low' | 'Medium' | 'High';
-    risks: string[];
+    universityId: string; // university name or master ID
     locked: boolean;
 }
 
-// from tasks/{uid}/{taskId}
+// from users/{uid}/tasks/{taskId}
 export type ApplicationTask = {
   id: string;
   userId: string;
@@ -73,6 +71,10 @@ export type AppUser = UserBase & {
   state: UserState | null;
   shortlisted: ShortlistedUniversity[];
   tasks: ApplicationTask[];
+  // Convenience properties for components
+  shortlistedUniversities: string[];
+  lockedUniversities: string[];
+  applicationTasks: ApplicationTask[];
 };
 
 // Original types, kept for reference if needed by other components temporarily
