@@ -122,14 +122,13 @@ export default function OnboardingPage() {
     }
   };
 
-  async function onSubmit(data: ProfileFormValues) {
+  function onSubmit(data: ProfileFormValues) {
     const { preferredCountries, ...rest } = data;
     const profileData = {
       ...rest,
       preferredCountries: preferredCountries.split(',').map(s => s.trim()),
     };
     updateProfile(profileData);
-    router.push('/dashboard');
   }
 
   const delta = currentStep - previousStep;

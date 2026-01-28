@@ -183,9 +183,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateProfile = useCallback((profileData: Profile) => {
-    updateUser({ profile: profileData, onboardingComplete: true, currentStage: 2 });
+    if (!appUser) return;
+    const updatedUser = { ...appUser, profile: profileData, onboardingComplete: true, currentStage: 2 as const };
+    setDocumentNonBlocking(doc(firestore, 'users', appUser.id), updatedUser, { merge: true });
+    setAppUser(updatedUser);
     router.push('/dashboard');
-  }, [appUser, router]);
+  }, [appUser, firestore, router]);
   
   const updateProfileStrength = useCallback((strength: ProfileStrength) => {
     updateUser({ profileStrength: strength });
