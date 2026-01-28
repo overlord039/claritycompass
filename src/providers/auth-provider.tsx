@@ -233,31 +233,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthProviderLoading(true);
     try {
       const batch = writeBatch(firestore);
-      
+
       const profileRef = doc(firestore, 'profiles', firebaseUser.uid);
       batch.set(profileRef, { ...profileData, lastUpdated: serverTimestamp() }, { merge: true });
-      
-      const userRef = doc(firestore, 'users', firebaseUser.uid);
-      const isInitialOnboarding = appUser?.currentStage === 1;
 
-      if (isInitialOnboarding) {
+      if (appUser && !appUser.onboardingComplete) {
+        const userRef = doc(firestore, 'users', firebaseUser.uid);
         batch.update(userRef, { onboardingComplete: true, currentStage: 2 });
+        
         const stateRef = doc(firestore, 'user_state', firebaseUser.uid);
         batch.set(stateRef, { currentStage: 2 }, { merge: true });
-      } else {
-        // If just editing, only mark onboarding as complete if it wasn't already.
-        // This avoids unnecessary writes but ensures it's set.
-        if (!appUser?.onboardingComplete) {
-            batch.update(userRef, { onboardingComplete: true });
-        }
       }
-      
+
       await batch.commit();
       toast({ title: 'Profile Updated', description: 'Your profile has been saved successfully.' });
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Update Failed', description: 'Could not save your profile.' });
     } finally {
-      // The main useEffect will handle loading state changes based on data re-fetch
+      setAuthProviderLoading(false);
     }
   }, [firestore, firebaseUser, appUser, toast]);
   
