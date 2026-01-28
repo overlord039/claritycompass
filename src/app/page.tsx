@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import Link from 'next/link';
@@ -11,8 +13,14 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
+import React from 'react';
+import Autoplay from 'embla-carousel-autoplay';
 
 export default function Home() {
+  const plugin = React.useRef(
+    Autoplay({ delay: 2000, stopOnInteraction: false })
+  );
+
   const stats = {
     universities: universities.length,
     countries: [...new Set(universities.map(u => u.country))].length,
@@ -82,10 +90,13 @@ export default function Home() {
 
           <div className="mt-16">
               <Carousel
+                  plugins={[plugin.current]}
                   opts={{
                       align: "start",
                       loop: true,
                   }}
+                  onMouseEnter={plugin.current.stop}
+                  onMouseLeave={plugin.current.reset}
                   className="w-full"
               >
                   <CarouselContent>
