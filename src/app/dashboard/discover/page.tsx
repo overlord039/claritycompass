@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/providers/auth-provider';
@@ -76,6 +76,7 @@ export default function DiscoverPage() {
     const { user, shortlistUniversity, shortlistedUniversities } = useAuth();
     const [categorized, setCategorized] = useState<CategorizedUniversities | null>(null);
     const [loading, setLoading] = useState(true);
+    const [showAll, setShowAll] = useState(false);
 
     useEffect(() => {
         const runDiscoveryEngine = () => {
@@ -242,6 +243,23 @@ export default function DiscoverPage() {
         }
     }, [user]);
 
+    const allAsDiscovered = useMemo(() => {
+        // @ts-ignore
+        return allUniversities.map((uni: UniversityFromData & { annual_tuition_usd: number, living_cost_usd: number, ranking_band: string, avg_gpa_required: number, ielts_required: number | null, acceptance_difficulty: 'Low' | 'Medium' | 'High' }) => ({
+            id: uni.id,
+            name: uni.name,
+            country: uni.country,
+            city: uni.city,
+            estimatedAnnualCost: uni.annual_tuition_usd + uni.living_cost_usd,
+            category: 'Target', // Default category, not really used in this view
+            acceptanceLikelihood: uni.acceptance_difficulty,
+            whyItFits: `A ${uni.ranking_band} university known for: ${uni.fields.join(', ')}.`,
+            risks: [`Avg. GPA: ${uni.avg_gpa_required}`, `IELTS: ${uni.ielts_required || 'N/A'}`],
+            imageUrl: uni.imageUrl,
+            imageHint: uni.imageHint
+        }));
+    }, []);
+
     const renderSkeletons = () => (
         <div className="space-y-8">
             {['Dream', 'Target', 'Safe'].map(category => (
@@ -258,26 +276,44 @@ export default function DiscoverPage() {
     return (
         <div className="container mx-auto py-8">
             <Card className="w-full max-w-7xl mx-auto shadow-lg bg-card/80 backdrop-blur-sm">
-                <CardHeader className="flex-row items-center justify-between">
+                <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
                         <CardTitle className="text-2xl font-headline flex items-center gap-2">
                             <Search className="h-6 w-6 text-primary"/>
-                            University Discovery
+                            {showAll ? 'All Universities' : 'University Discovery'}
                         </CardTitle>
                         <CardDescription>
-                            Here are universities categorized based on your profile. Shortlist your favorites.
+                             {showAll
+                                ? `Browse our entire database of ${allUniversities.length} universities.`
+                                : 'Here are universities categorized based on your profile. Shortlist your favorites.'}
                         </CardDescription>
                     </div>
-                    <Button asChild variant="outline">
-                        <Link href="/dashboard">
-                            <ArrowLeft className="mr-2 h-4 w-4" />
-                            Back to Dashboard
-                        </Link>
-                    </Button>
+                    <div className="flex gap-2 w-full sm:w-auto">
+                        <Button variant="secondary" onClick={() => setShowAll(!showAll)} className="flex-grow sm:flex-grow-0">
+                            {showAll ? 'Show Recommended' : 'Show All Universities'}
+                        </Button>
+                        <Button asChild variant="outline" className="flex-grow sm:flex-grow-0">
+                            <Link href="/dashboard">
+                                <ArrowLeft className="mr-2 h-4 w-4" />
+                                Back
+                            </Link>
+                        </Button>
+                    </div>
                 </CardHeader>
                 <CardContent className="p-6">
                     {loading ? (
                         renderSkeletons()
+                    ) : showAll ? (
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {allAsDiscovered.map(uni => (
+                                <UniversityCard 
+                                    key={uni.id} 
+                                    university={uni} 
+                                    onShortlist={() => shortlistUniversity(uni.name)}
+                                    isShortlisted={shortlistedUniversities.includes(uni.name)}
+                                />
+                            ))}
+                        </div>
                     ) : !categorized || (!categorized.dream.length && !categorized.target.length && !categorized.safe.length) ? (
                         <div className="text-center py-10">
                             <p className="text-muted-foreground mb-4">No universities matched your specific criteria. Try broadening your search in your profile!</p>
