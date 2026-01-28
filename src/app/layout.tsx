@@ -30,7 +30,9 @@ export default function RootLayout({
         <FirebaseClientProvider>
           <AuthProvider>
             <CursorFollower />
-            {children}
+            <main className="relative z-10">
+                {children}
+            </main>
             <Toaster />
           </AuthProvider>
         </FirebaseClientProvider>
