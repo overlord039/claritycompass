@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/providers/auth-provider';
-import type { University, UserProfile } from '@/lib/types';
+import type { University as UniversityFromData } from '@/lib/types';
 import { universities as allUniversities } from '@/lib/data';
 
 import { Button } from '@/components/ui/button';
@@ -13,68 +13,30 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Search, ThumbsUp } from 'lucide-react';
 
+
+type DiscoveredUniversity = {
+  id: string;
+  name: string;
+  country: string;
+  city: string;
+  estimatedAnnualCost: number;
+  category: "Dream" | "Target" | "Safe";
+  acceptanceLikelihood: "High" | "Medium" | "Low";
+  whyItFits: string;
+  risks: string[];
+  imageUrl: string;
+  imageHint: string;
+};
+
+
 type CategorizedUniversities = {
-  dream: University[];
-  target: University[];
-  safe: University[];
-};
-
-// More robust GPA parser to handle various formats and normalize to a 0-100 scale
-const parseGpa = (gpaString?: string): number | null => {
-    if (!gpaString) return null;
-    const sanitized = gpaString.replace(/[^0-9./]/g, '');
-    const parts = sanitized.split('/');
-    const gpa = parseFloat(parts[0]);
-    if (isNaN(gpa)) return null;
-
-    let maxGpa = parts.length > 1 ? parseFloat(parts[1]) : 0;
-    
-    // Infer max scale if not provided (e.g., "3.8" or "8.5")
-    if (maxGpa === 0) {
-        if (gpa > 10) return null; // Invalid GPA
-        if (gpa <= 4.0) maxGpa = 4.0;
-        else if (gpa <= 5.0) maxGpa = 5.0; // Some systems use 5.0
-        else maxGpa = 10.0;
-    }
-
-    if (maxGpa === 0) return null;
-
-    return (gpa / maxGpa) * 100;
+  dream: DiscoveredUniversity[];
+  target: DiscoveredUniversity[];
+  safe: DiscoveredUniversity[];
 };
 
 
-// Improved scoring logic based on weighted profile attributes
-const scoreFromProfile = (profile: UserProfile): number => {
-    // Weights for each category, summing to 1.0
-    const weights = { gpa: 0.4, ielts: 0.2, gre: 0.2, sop: 0.2 };
-    
-    let totalWeightedScore = 0;
-
-    // 1. GPA Score (40%)
-    const gpaScore = parseGpa(profile.academic.gpa); // This is 0-100
-    // Use the normalized 0-100 score, or assume 60/100 if not provided
-    totalWeightedScore += (gpaScore ?? 60) * weights.gpa;
-    
-    const readinessMap: { [key: string]: number } = { // 0-100 scale
-        'Completed': 100, 'Ready': 100, 
-        'In progress': 50, 'Draft': 50, 
-        'Not started': 10 // Give some points for having it on the radar
-    };
-
-    // 2. IELTS Score (20%)
-    totalWeightedScore += (readinessMap[profile.readiness.ieltsStatus] ?? 10) * weights.ielts;
-    
-    // 3. GRE Score (20%)
-    totalWeightedScore += (readinessMap[profile.readiness.greStatus] ?? 10) * weights.gre;
-
-    // 4. SOP Score (20%)
-    totalWeightedScore += (readinessMap[profile.readiness.sopStatus] ?? 10) * weights.sop;
-
-    return Math.round(totalWeightedScore); // Already on a 0-100 scale
-};
-
-
-function UniversityCard({ university, onShortlist, isShortlisted }: { university: University; onShortlist: () => void; isShortlisted: boolean }) {
+function UniversityCard({ university, onShortlist, isShortlisted }: { university: DiscoveredUniversity; onShortlist: () => void; isShortlisted: boolean }) {
     return (
         <Card className="overflow-hidden flex flex-col h-full bg-background/50 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 transition-all duration-300 group">
              <div className="relative w-full h-40">
@@ -90,15 +52,15 @@ function UniversityCard({ university, onShortlist, isShortlisted }: { university
             </div>
             <CardHeader>
                 <CardTitle className="text-lg">{university.name}</CardTitle>
+                 <p className="text-sm text-muted-foreground">{university.city}, {university.country}</p>
                 <div className="flex flex-wrap gap-2 pt-2">
-                    <Badge variant="secondary">{university.country}</Badge>
-                    <Badge variant="secondary">Cost: {university.costLevel}</Badge>
-                    <Badge variant="secondary">Chance: {university.acceptanceChance}</Badge>
+                    <Badge variant="secondary">Cost: ${university.estimatedAnnualCost.toLocaleString()}/year</Badge>
+                    <Badge variant="secondary">Chance: {university.acceptanceLikelihood}</Badge>
                 </div>
             </CardHeader>
             <CardContent className="flex-grow space-y-2">
-                 <p className="text-sm text-muted-foreground"><strong className="text-foreground">Fit:</strong> {university.fit}</p>
-                 <p className="text-sm text-muted-foreground"><strong className="text-foreground">Risks:</strong> {university.risks}</p>
+                 <p className="text-sm text-muted-foreground"><strong className="text-foreground">Why it fits:</strong> {university.whyItFits}</p>
+                 {university.risks.length > 0 && <p className="text-sm text-muted-foreground"><strong className="text-foreground">Risks:</strong> {university.risks.join(', ')}</p>}
             </CardContent>
             <CardFooter>
                  <Button onClick={onShortlist} disabled={isShortlisted} className="w-full">
@@ -116,89 +78,163 @@ export default function DiscoverPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const categorizeUniversities = () => {
+        const runDiscoveryEngine = () => {
             if (!user?.profile) {
                 setLoading(true);
                 return;
             };
             setLoading(true);
-            
-            const userScore = scoreFromProfile(user.profile);
-            
-            // Defines the baseline score for each university difficulty tier
-            const uniDifficultyScore = {
-                'High': 85,
-                'Medium': 65,
-                'Low': 45,
+
+            const { profile } = user;
+
+            const parseGpaTo10 = (gpaString?: string): number | null => {
+                if (!gpaString) return null;
+                const sanitized = gpaString.replace(/[^0-9./]/g, '');
+                const parts = sanitized.split('/');
+                const gpa = parseFloat(parts[0]);
+                if (isNaN(gpa)) return null;
+
+                let maxGpa = parts.length > 1 ? parseFloat(parts[1]) : 0;
+                 if (maxGpa === 0) {
+                    if (gpa > 10) return null;
+                    if (gpa <= 4.0) maxGpa = 4.0;
+                    else if (gpa <= 5.0) maxGpa = 5.0;
+                    else maxGpa = 10.0;
+                }
+                if (maxGpa === 0) return null;
+                return (gpa / maxGpa) * 10;
             };
+            const userGpa = parseGpaTo10(profile.academic.gpa);
 
-            const dream: University[] = [];
-            const target: University[] = [];
-            const safe: University[] = [];
+            let budgetMax = 0;
+            if (profile.budget.budgetRangePerYear === "<20k") budgetMax = 20000;
+            else if (profile.budget.budgetRangePerYear === "20k-40k") budgetMax = 40000;
+            else if (profile.budget.budgetRangePerYear === ">40k") budgetMax = 150000; 
 
-            // --- Pre-filter to get the most relevant universities first ---
-            const preferredCountries = user.profile.studyGoal.preferredCountries.map(c => c.trim().toLowerCase()).filter(c => c);
-            const fieldOfStudy = user.profile.studyGoal.fieldOfStudy.toLowerCase();
-
-            const fieldSynonyms: {[key: string]: string[]} = {
-                'computer science': ['cs', 'cse'],
-                'information technology': ['it'],
-                'artificial intelligence': ['ai', 'ml'],
-                'data science': ['ds'],
-                'business analytics': ['ba'],
-                'engineering': ['eng']
+            const userProfileForEngine = {
+                gpa: userGpa,
+                budgetMax: budgetMax,
+                fundingType: profile.budget.fundingType,
+                preferredCountries: profile.studyGoal.preferredCountries.map(c => c.trim()),
+                targetField: profile.studyGoal.fieldOfStudy.trim(),
+                exams: {
+                    ieltsCompleted: profile.readiness.ieltsStatus === 'Completed',
+                    greCompleted: profile.readiness.greStatus === 'Completed',
+                }
             };
-            const userSearchTerms = [fieldOfStudy, ...(fieldSynonyms[fieldOfStudy] || [])].filter(t => t);
+            
+            const fieldEquivalents: { [key: string]: string[] } = {
+                'CS': ['cs', 'it', 'data science', 'ai', 'computer science', 'information technology', 'artificial intelligence', 'applied it'],
+                'Business': ['business', 'management', 'analytics', 'business analytics'],
+                'Engineering': ['engineering'],
+                'MBBS': ['mbbs'],
+            };
+            
+            const getUserFieldGroup = (field: string) => {
+                const lowerField = field.toLowerCase();
+                for (const group in fieldEquivalents) {
+                    if (fieldEquivalents[group].includes(lowerField)) {
+                        return group;
+                    }
+                }
+                return lowerField;
+            };
+            const userFieldGroup = getUserFieldGroup(userProfileForEngine.targetField);
 
-            const relevantUniversities = allUniversities.filter(uni => {
-                // 1. Country filter: must match one of the preferred countries (if any)
-                const countryMatch = preferredCountries.length === 0 || preferredCountries.some(c => uni.country.toLowerCase().includes(c));
-                if (!countryMatch) return false;
+            const discovered: DiscoveredUniversity[] = [];
 
-                // 2. Field of study filter: must have a matching field
-                const fieldMatch = userSearchTerms.length === 0 || uni.fields.some(uniField => {
-                    const uniFieldLower = uniField.toLowerCase();
-                    // Match if user term is in uni field OR uni field is in user term (e.g., "cs" in "computer science")
-                    return userSearchTerms.some(term => uniFieldLower.includes(term) || term.includes(uniFieldLower));
-                });
-                if (!fieldMatch) return false;
+            allUniversities.forEach(uni => {
+                let whyItFits = '';
+                const risks: string[] = [];
+
+                if (userProfileForEngine.preferredCountries.length > 0 && !userProfileForEngine.preferredCountries.some(c => uni.country.toLowerCase() === c.toLowerCase())) {
+                    return;
+                }
+
+                const uniFieldGroups = uni.fields.map(f => getUserFieldGroup(f));
+                const isFieldMatch = uniFieldGroups.includes(userFieldGroup);
+                if (!isFieldMatch) {
+                    risks.push(`Field Mismatch`);
+                } else {
+                    whyItFits = `Aligns with your target field.`;
+                }
                 
-                // 3. Budget filter: university cost must be within or below user's budget level
-                const budgetMap: {[key: string]: 'Low' | 'Medium' | 'High'} = { "<20k": "Low", "20k-40k": "Medium", ">40k": "High" };
-                const userBudgetLevel = user.profile.budget.budgetRangePerYear ? budgetMap[user.profile.budget.budgetRangePerYear] : null;
+                const estimatedAnnualCost = uni.annual_tuition_usd + uni.living_cost_usd;
 
-                if (userBudgetLevel) {
-                    if (userBudgetLevel === "Low" && (uni.costLevel === "Medium" || uni.costLevel === "High")) return false;
-                    if (userBudgetLevel === "Medium" && uni.costLevel === "High") return false;
+                if (estimatedAnnualCost > userProfileForEngine.budgetMax + 10000) {
+                     risks.push(`Over Budget`);
+                } else if (estimatedAnnualCost > userProfileForEngine.budgetMax) {
+                     risks.push(`Stretch Budget`);
                 }
 
-                return true;
-            });
-            // --- End of Filtering ---
+                if(userProfileForEngine.fundingType === 'scholarship-dependent') {
+                    risks.push('Funding Uncertainty');
+                }
+                
+                let academicFit: 'Strong' | 'Acceptable' | 'Borderline' | 'Weak' = 'Weak';
+                if (userGpa) {
+                     const gpaDiff = userGpa - uni.avg_gpa_required;
+                     if (gpaDiff >= 0.3) academicFit = 'Strong';
+                     else if (gpaDiff >= 0) academicFit = 'Acceptable';
+                     else if (gpaDiff >= -0.3) academicFit = 'Borderline';
+                }
+                if (userGpa === null) {
+                    risks.push('GPA not specified');
+                } else if (academicFit === 'Weak') {
+                    risks.push(`GPA Gap`);
+                } else {
+                     if (whyItFits) whyItFits += ' ';
+                     whyItFits += `Your profile is an academic match.`;
+                }
 
-            relevantUniversities.forEach(uni => {
-                const score = uniDifficultyScore[uni.acceptanceChance];
-                const diff = userScore - score;
-
-                // User score is significantly lower than uni requirement -> Dream
-                if (diff < -15) { 
-                    dream.push(uni);
-                } 
-                // User score is in the same ballpark -> Target
-                else if (Math.abs(diff) <= 15) { 
-                    target.push(uni);
-                } 
-                // User score is significantly higher -> Safe
-                else { 
-                    safe.push(uni);
+                if (uni.ielts_required && !userProfileForEngine.exams.ieltsCompleted) {
+                    risks.push('IELTS Not Completed');
+                }
+                if (uni.gre_required && !userProfileForEngine.exams.greCompleted) {
+                    risks.push('GRE Not Completed');
+                }
+                
+                let acceptanceLikelihood: 'High' | 'Medium' | 'Low' = 'Low';
+                if (academicFit === 'Strong' && uni.acceptance_difficulty === 'Low') {
+                    acceptanceLikelihood = 'High';
+                } else if (academicFit === 'Acceptable' && uni.acceptance_difficulty === 'Medium') {
+                    acceptanceLikelihood = 'Medium';
+                }
+                
+                let category: 'Dream' | 'Target' | 'Safe' | null = null;
+                if (uni.acceptance_difficulty === 'High' && (academicFit === 'Acceptable' || academicFit === 'Borderline')) {
+                    category = 'Dream';
+                } else if (uni.acceptance_difficulty === 'Medium' && academicFit === 'Acceptable') {
+                    category = 'Target';
+                } else if (uni.acceptance_difficulty === 'Low' && academicFit === 'Strong') {
+                    category = 'Safe';
+                }
+                
+                if (category) {
+                    discovered.push({
+                        id: uni.id,
+                        name: uni.name,
+                        country: uni.country,
+                        city: uni.city,
+                        estimatedAnnualCost,
+                        category,
+                        acceptanceLikelihood,
+                        whyItFits: whyItFits || "A potential option based on your preferences.",
+                        risks,
+                        imageUrl: uni.imageUrl,
+                        imageHint: uni.imageHint
+                    });
                 }
             });
+
+            const dream = discovered.filter(u => u.category === 'Dream');
+            const target = discovered.filter(u => u.category === 'Target');
+            const safe = discovered.filter(u => u.category === 'Safe');
 
             setCategorized({ dream, target, safe });
             setLoading(false);
         };
-
-        categorizeUniversities();
+        runDiscoveryEngine();
     }, [user?.profile]);
 
     const renderSkeletons = () => (
