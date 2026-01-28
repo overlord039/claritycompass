@@ -7,34 +7,111 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CircularProgress } from '@/components/ui/circular-progress';
 import { GraduationCap, Trophy, Wallet, BookOpen } from 'lucide-react';
-import type { ProfileStrength } from '@/lib/types';
+import type { UserProfile } from '@/lib/types';
 import { useMemo } from 'react';
 
-const calculateProfileScore = (strength: ProfileStrength | null): number => {
-    if (!strength) return 0;
+const calculateProfileScore = (profile: UserProfile | null): number => {
+    if (!profile) return 0;
+
     let score = 0;
-    const maxScore = 9; // 3 points for each category
 
-    const academicMap = { 'Strong': 3, 'Average': 2, 'Weak': 1, 'null': 0 };
-    const examMap = { 'Completed': 3, 'In progress': 2, 'Not started': 1, 'null': 0 };
-    const sopMap = { 'Ready': 3, 'Draft': 2, 'Not started': 1, 'null': 0 };
+    // 1. Academics (GPA) - 30 points
+    const parseGpa = (gpaString?: string): number | null => {
+        if (!gpaString) return null;
+        const sanitized = gpaString.replace(/[^0-9./]/g, '');
+        const parts = sanitized.split('/');
+        const gpaValue = parseFloat(parts[0]);
+        if (isNaN(gpaValue)) return null;
 
-    score += academicMap[strength.academics || 'null'] ?? 0;
-    score += examMap[strength.exams || 'null'] ?? 0;
-    score += sopMap[strength.sop || 'null'] ?? 0;
+        let maxGpa = parts.length > 1 ? parseFloat(parts[1]) : 0;
+        
+        if (maxGpa === 0) {
+            if (gpaValue > 10) return null;
+            if (gpaValue <= 4.0) maxGpa = 4.0;
+            else if (gpaValue <= 5.0) maxGpa = 5.0;
+            else maxGpa = 10.0;
+        }
 
-    return Math.round((score / maxScore) * 100);
+        if (maxGpa === 0) return null;
+
+        return (gpaValue / maxGpa) * 10;
+    };
+    
+    const gpa = parseGpa(profile.academic.gpa);
+    if (gpa !== null) {
+        if (gpa >= 8.0) score += 30;
+        else if (gpa >= 7.0) score += 24;
+        else if (gpa >= 6.0) score += 18;
+        else if (gpa >= 5.0) score += 10;
+        else score += 5;
+    }
+
+    // 2. Exams - 25 points
+    const { ieltsStatus, greStatus } = profile.readiness;
+    if (ieltsStatus === 'Completed' && greStatus === 'Completed') {
+        score += 25;
+    } else if (ieltsStatus === 'Completed' || greStatus === 'Completed') {
+        score += 15;
+    } else if (ieltsStatus === 'In progress' || greStatus === 'In progress') {
+        score += 8;
+    }
+
+    // 3. SOP Readiness - 20 points
+    const { sopStatus } = profile.readiness;
+    if (sopStatus === 'Ready') {
+        score += 20;
+    } else if (sopStatus === 'Draft') {
+        score += 12;
+    }
+    
+    // 4. Budget + Funding Type - 15 points
+    let budgetScore = 0;
+    const highCostCountries = ['USA', 'UK', 'Canada', 'Australia', 'Ireland'];
+    const targetsHighCost = profile.studyGoal.preferredCountries.some(c => highCostCountries.map(hc => hc.toLowerCase()).includes(c.trim().toLowerCase()));
+
+    if (targetsHighCost) {
+        if (profile.budget.budgetRangePerYear === '>40k') budgetScore = 10;
+        else if (profile.budget.budgetRangePerYear === '20k-40k') budgetScore = 6;
+        else budgetScore = 2; // <20k
+    } else { // Only low/medium cost countries
+        if (profile.budget.budgetRangePerYear === '>40k' || profile.budget.budgetRangePerYear === '20k-40k') {
+            budgetScore = 10;
+        } else { // <20k
+            budgetScore = 6;
+        }
+    }
+
+    if (profile.budget.fundingType === 'self-funded') budgetScore += 5;
+    else if (profile.budget.fundingType === 'loan-dependent') budgetScore += 3;
+    else if (profile.budget.fundingType === 'scholarship-dependent') budgetScore += 1;
+    
+    score += Math.min(budgetScore, 15);
+
+    // 5. Goal Clarity - 10 points
+    const { intendedDegree, fieldOfStudy, targetIntakeYear, preferredCountries } = profile.studyGoal;
+    const missingFields = [intendedDegree, fieldOfStudy, targetIntakeYear, preferredCountries.join('')]
+        .filter(f => !f || f.length === 0).length;
+
+    if (missingFields === 0) {
+        score += 10;
+    } else if (missingFields === 1) {
+        score += 6;
+    } else {
+        score += 2;
+    }
+
+    return Math.round(score);
 };
 
 
 export function ProfileAnalysisCard() {
     const { user } = useAuth();
     
-    const profileScore = useMemo(() => calculateProfileScore(user?.state?.profileStrength || null), [user?.state?.profileStrength]);
+    const profileScore = useMemo(() => calculateProfileScore(user?.profile || null), [user?.profile]);
 
     const getProfileStatus = (score: number) => {
-        if (score > 75) return { text: "Strong", variant: "default" as const };
-        if (score > 40) return { text: "Average", variant: "secondary" as const };
+        if (score > 70) return { text: "Strong", variant: "default" as const };
+        if (score > 40) return { text: "Moderate", variant: "secondary" as const };
         return { text: "Needs Work", variant: "destructive" as const };
     }
 
@@ -46,7 +123,7 @@ export function ProfileAnalysisCard() {
                 <div>
                     <CardTitle className="text-xl font-semibold">Profile Analysis</CardTitle>
                     <CardDescription>
-                        Hey {user?.fullName?.split(' ')[0] || 'there'}, here's an AI-powered summary of your profile.
+                        Hey {user?.fullName?.split(' ')[0] || 'there'}, here's a summary of your profile strength.
                     </CardDescription>
                 </div>
                 <Badge variant={profileStatus.variant}>
