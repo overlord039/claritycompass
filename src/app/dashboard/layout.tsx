@@ -1,10 +1,42 @@
 'use client';
 
 import { useEffect, type ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/providers/auth-provider';
 import { Header } from '@/components/header';
 import { Skeleton } from '@/components/ui/skeleton';
+import { StageIndicator } from '@/components/dashboard/stage-indicator';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+
+function DashboardNav() {
+    const pathname = usePathname();
+    const navItems = [
+        { name: 'Dashboard', href: '/dashboard' },
+        { name: 'Universities', href: '/dashboard/discover' },
+        { name: 'Forums', href: '/dashboard/forums' },
+    ];
+
+    return (
+        <nav className="flex items-center space-x-2">
+            {navItems.map((item) => (
+                <Button
+                    key={item.name}
+                    asChild
+                    variant={pathname === item.href ? 'secondary' : 'ghost'}
+                    className={cn(
+                        "font-semibold",
+                        pathname === item.href ? "text-foreground" : "text-muted-foreground"
+                    )}
+                >
+                    <Link href={item.href}>{item.name.toUpperCase()}</Link>
+                </Button>
+            ))}
+        </nav>
+    );
+}
+
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -39,9 +71,19 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col h-screen bg-muted/20">
       <Header />
-      <main className="flex-grow container mx-auto px-4 md:px-6 py-8">
+      <div className="border-b bg-background">
+          <div className="container mx-auto px-4 md:px-6">
+            <DashboardNav />
+          </div>
+      </div>
+      <div className="border-b bg-card py-6">
+          <div className="container mx-auto px-4 md:px-6">
+            <StageIndicator currentStage={user.currentStage} />
+          </div>
+      </div>
+      <main className="flex-grow container mx-auto px-4 md:px-6 py-6 overflow-hidden">
         {children}
       </main>
     </div>

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Heart, Search } from 'lucide-react';
 import type { University } from '@/lib/types';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 function MiniUniversityCard({ university }: { university: University }) {
     return (
@@ -46,22 +47,17 @@ export function ShortlistedUniversitiesCard() {
                     Your favorite universities at a glance.
                 </CardDescription>
             </CardHeader>
-            <CardContent className="flex-grow">
+            <CardContent className="flex-grow flex flex-col min-h-0">
                 {universities.length > 0 ? (
-                    <div className="space-y-3">
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                            {universities.slice(0, 8).map(uni => (
+                    <ScrollArea className="flex-grow">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 pr-4">
+                            {universities.map(uni => (
                                <Link href="/dashboard/discover" key={uni.id} className="block h-full">
                                  <MiniUniversityCard university={uni} />
                                </Link>
                             ))}
                         </div>
-                         {universities.length > 8 && (
-                            <Button variant="outline" className="w-full mt-2" asChild>
-                                <Link href="/dashboard/discover">View all {universities.length} shortlisted</Link>
-                            </Button>
-                        )}
-                    </div>
+                    </ScrollArea>
                 ) : (
                     <div className="h-full flex flex-col items-center justify-center text-center p-6">
                         <div className="p-4 bg-muted rounded-full mb-4">

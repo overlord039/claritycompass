@@ -7,40 +7,50 @@ import { ShortlistedUniversitiesCard } from '@/components/dashboard/cards/shortl
 import { NextMissionCard } from '@/components/dashboard/cards/next-mission-card';
 import { JournalCard } from '@/components/dashboard/cards/journal-card';
 import { SessionsCard } from '@/components/dashboard/cards/sessions-card';
+import { AiGuidance } from '@/components/dashboard/ai-guidance';
 
 export default function DashboardHomePage() {
     const { loading, user } = useAuth();
 
     if (loading || !user) {
         return (
-            <div className="space-y-6">
-                <Skeleton className='h-64 w-full' />
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <Skeleton className='h-80 w-full' />
-                    <Skeleton className='h-80 w-full lg:col-span-2' />
+             <div className="h-full flex flex-col gap-6">
+                <div className="flex flex-row gap-6">
+                    <div className="w-[45%]"><Skeleton className="h-full" /></div>
+                    <div className="w-[30%]"><Skeleton className="h-full" /></div>
+                    <div className="w-[25%] flex flex-col gap-6"><Skeleton className="h-32" /><Skeleton className="flex-grow" /></div>
+                </div>
+                <div className="flex flex-row gap-6 flex-grow">
+                    <div className="w-[75%]"><Skeleton className="h-full" /></div>
+                    <div className="w-[25%]"><Skeleton className="h-full" /></div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
-            <h1 className="text-3xl font-bold font-headline">Welcome, {user.fullName?.split(' ')[0]}!</h1>
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div className="xl:col-span-3">
-                    <ProfileAnalysisCard />
+        <div className="h-full flex flex-col gap-6">
+            {/* Top row */}
+            <div className="flex flex-row gap-6">
+                <div className="w-[45%]">
+                     <ProfileAnalysisCard />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:col-span-3 gap-6">
-                    <div className="md:col-span-1">
-                        <NextMissionCard />
-                    </div>
-                    <div className="md:col-span-1">
-                         <ShortlistedUniversitiesCard />
-                    </div>
+                <div className="w-[30%]">
+                    <NextMissionCard />
                 </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 xl:col-span-3 gap-6">
-                    <JournalCard />
+                <div className="w-[25%] flex flex-col gap-6">
                     <SessionsCard />
+                    <JournalCard />
+                </div>
+            </div>
+
+            {/* Bottom row */}
+            <div className="flex flex-row gap-6 flex-grow min-h-0">
+                <div className="w-[75%] flex flex-col">
+                    <ShortlistedUniversitiesCard />
+                </div>
+                <div className="w-[25%]">
+                    <AiGuidance />
                 </div>
             </div>
         </div>
