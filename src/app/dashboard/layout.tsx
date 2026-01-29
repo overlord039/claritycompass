@@ -15,6 +15,7 @@ function DashboardNav() {
     const navItems = [
         { name: 'Dashboard', href: '/dashboard' },
         { name: 'Universities', href: '/dashboard/discover' },
+        { name: 'To-do List', href: '/dashboard/tasks' },
         { name: 'Notes/Sessions', href: '/dashboard/forums' },
     ];
 
