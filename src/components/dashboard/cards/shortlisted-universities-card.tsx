@@ -52,7 +52,7 @@ export function ShortlistedUniversitiesCard() {
             <CardContent className="flex-grow flex flex-col min-h-0 p-4 pt-0">
                 {universities.length > 0 ? (
                     <ScrollArea className="flex-grow">
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 pr-4">
+                        <div className="grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-3 pr-4">
                             {universities.map(uni => (
                                <Link href="/dashboard/discover" key={uni.id} className="block h-full">
                                  <MiniUniversityCard university={uni} />
