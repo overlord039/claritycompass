@@ -1,5 +1,13 @@
 
 
+export type ActionPlan = {
+    requiredDocuments: string[];
+    timeline: {
+        milestone: string;
+        deadline: string;
+    }[];
+};
+
 // From users/{uid}
 export type UserBase = {
   id: string;
@@ -44,6 +52,7 @@ export type UserState = {
     sop: 'Not started' | 'Draft' | 'Ready' | null;
   };
   recommendations: string | null;
+  actionPlan?: ActionPlan;
 };
 
 // from users/{uid}/shortlisted_universities/{docId}

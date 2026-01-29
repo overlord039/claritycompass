@@ -68,6 +68,31 @@
             "exams": { "type": "string", "enum": ["Not started", "In progress", "Completed"] },
             "sop": { "type": "string", "enum": ["Not started", "Draft", "Ready"] }
           }
+        },
+        "recommendations": {
+          "type": "string",
+          "description": "AI-generated recommendations to improve the user's profile."
+        },
+        "actionPlan": {
+          "type": "object",
+          "description": "The AI-generated action plan for the application stage, including documents and a timeline.",
+          "properties": {
+            "requiredDocuments": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "timeline": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "milestone": { "type": "string" },
+                  "deadline": { "type": "string" }
+                },
+                "required": ["milestone", "deadline"]
+              }
+            }
+          }
         }
       },
       "required": ["currentStage", "profileStrength"]

@@ -21,7 +21,7 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp, writeBatch, collection, deleteDoc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, writeBatch, collection, deleteDoc, updateDoc, deleteField } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { assessProfile } from '@/lib/actions';
 
@@ -394,7 +394,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     batch.update(doc(firestore, 'users', firebaseUser.uid), { currentStage: 3 });
-    batch.set(doc(firestore, 'user_state', firebaseUser.uid), { currentStage: 3 }, { merge: true });
+    // Also clear the action plan from state
+    batch.set(doc(firestore, 'user_state', firebaseUser.uid), { 
+        currentStage: 3,
+        actionPlan: deleteField() 
+    }, { merge: true });
     
     await batch.commit();
   }, [firestore, firebaseUser, appUser]);
