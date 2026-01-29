@@ -62,9 +62,9 @@ export default function DashboardHomePage() {
                             <Book className="h-4 w-4" />
                             Journal & Notes
                         </h3>
-                        <div className="relative flex-grow">
-                            <Textarea placeholder="What's on your mind?" className="h-full pr-8 resize-none text-xs" rows={1}/>
-                            <Button variant="ghost" size="icon" className="absolute top-0 right-0 h-6 w-6">
+                        <div className="relative flex-grow rounded-lg bg-background/50 p-3">
+                            <Textarea placeholder="What's on your mind?" className="h-full bg-transparent border-0 pr-8 resize-none text-xs focus-visible:ring-0 focus-visible:ring-offset-0" rows={1}/>
+                            <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6">
                                 <Plus className="h-4 w-4"/>
                             </Button>
                         </div>
