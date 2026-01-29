@@ -1,5 +1,6 @@
 
 
+
 export type ActionPlan = {
     summary: string;
     requiredDocuments: string[];
@@ -55,6 +56,7 @@ export type UserState = {
   };
   recommendations: string | null;
   actionPlan?: ActionPlan;
+  notes?: string;
 };
 
 // from users/{uid}/shortlisted_universities/{docId}
@@ -76,12 +78,24 @@ export type ApplicationTask = {
   createdAt: any; // Firestore Timestamp
 };
 
+// from users/{uid}/sessions/{sessionId}
+export type Session = {
+    id: string;
+    userId: string;
+    title: string;
+    date: any; // Firestore Timestamp
+    type: 'Exam' | 'Deadline' | 'Meeting' | 'Reminder';
+    createdAt: any; // Firestore Timestamp
+};
+
+
 // The composite user object provided by AuthContext
 export type AppUser = UserBase & {
   profile: UserProfile | null;
   state: UserState | null;
   shortlisted: ShortlistedUniversity[];
   tasks: ApplicationTask[];
+  sessions: Session[];
   // Convenience properties for components
   shortlistedUniversities: string[];
   lockedUniversities: string[];

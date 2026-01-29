@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/providers/auth-provider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardFooter, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,15 +16,11 @@ import { Calendar as CalendarIcon, Book, Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import type { Session } from '@/lib/types';
+import { Timestamp } from 'firebase/firestore';
 
-type Session = {
-    id: string;
-    title: string;
-    date: Date;
-    type: 'Exam' | 'Deadline' | 'Meeting' | 'Reminder';
-};
 
-function AddSessionForm({ onAddSession }: { onAddSession: (session: Omit<Session, 'id'>) => void }) {
+function AddSessionForm({ onAddSession }: { onAddSession: (session: Omit<Session, 'id' | 'userId' | 'createdAt' | 'date'> & { date: Date }) => void }) {
     const [title, setTitle] = useState('');
     const [date, setDate] = useState<Date | undefined>();
     const [type, setType] = useState<Session['type'] | undefined>();
@@ -107,40 +104,34 @@ function AddSessionForm({ onAddSession }: { onAddSession: (session: Omit<Session
 }
 
 export default function NotesAndSessionsPage() {
-    const [notes, setNotes] = useState('');
-    const [sessions, setSessions] = useState<Session[]>([]);
+    const { user, sessions, updateNotes, addSession, deleteSession } = useAuth();
+    const [notes, setNotes] = useState(user?.state?.notes || '');
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const { toast } = useToast();
+
+    useEffect(() => {
+        if (user?.state?.notes) {
+            setNotes(user.state.notes);
+        }
+    }, [user?.state?.notes]);
 
     const handleSaveNotes = () => {
-        // In a real app, you'd save this to a backend (e.g., Firestore).
-        // For this example, we just show a toast.
-        toast({
-            title: 'Notes Saved!',
-            description: 'Your notes have been saved locally.',
-        });
+        updateNotes(notes);
     };
     
-    const handleAddSession = (newSessionData: Omit<Session, 'id'>) => {
-        const newSession: Session = {
-            id: new Date().toISOString(),
-            ...newSessionData,
-        };
-
-        setSessions(prev => [...prev, newSession].sort((a, b) => a.date.getTime() - b.date.getTime()));
+    const handleAddSession = (newSessionData: Omit<Session, 'id' | 'userId' | 'createdAt' | 'date'> & { date: Date }) => {
+        addSession(newSessionData);
         setIsDialogOpen(false);
-        toast({
-            title: 'Session Added',
-            description: `${newSession.title} has been scheduled.`,
-        });
     };
     
     const handleDeleteSession = (sessionId: string) => {
-        setSessions(prev => prev.filter(s => s.id !== sessionId));
-        toast({
-            title: 'Session Removed',
-        });
+        deleteSession(sessionId);
     }
+
+    const sortedSessions = [...sessions].sort((a, b) => {
+        const dateA = a.date instanceof Timestamp ? a.date.toDate() : new Date(a.date);
+        const dateB = b.date instanceof Timestamp ? b.date.toDate() : new Date(b.date);
+        return dateA.getTime() - dateB.getTime();
+    });
 
     const getIconInfo = (type: Session['type']) => {
         switch (type) {
@@ -209,9 +200,10 @@ export default function NotesAndSessionsPage() {
 
                     <ScrollArea className="flex-grow h-72">
                         <div className="space-y-3 pr-4">
-                            {sessions.length > 0 ? (
-                                sessions.map(session => {
+                            {sortedSessions.length > 0 ? (
+                                sortedSessions.map(session => {
                                     const iconInfo = getIconInfo(session.type);
+                                    const sessionDate = session.date instanceof Timestamp ? session.date.toDate() : new Date(session.date);
                                     return (
                                     <div key={session.id} className="flex items-center justify-between p-3 rounded-md bg-background/50 border">
                                         <div className="flex items-center gap-3">
@@ -220,7 +212,7 @@ export default function NotesAndSessionsPage() {
                                             </div>
                                             <div>
                                                 <p className="font-semibold text-sm">{session.title}</p>
-                                                <p className="text-xs text-muted-foreground">{format(session.date, 'PPP')}</p>
+                                                <p className="text-xs text-muted-foreground">{format(sessionDate, 'PPP')}</p>
                                             </div>
                                         </div>
                                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteSession(session.id)}>

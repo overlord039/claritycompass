@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
-import type { AppUser, UserProfile, UserState, ShortlistedUniversity, ApplicationTask, ProfileStrength } from '@/lib/types';
+import type { AppUser, UserProfile, UserState, ShortlistedUniversity, ApplicationTask, ProfileStrength, Session } from '@/lib/types';
 import type { AssessProfileOutput } from '@/ai/flows/ai-profile-assessment';
 import { useRouter } from 'next/navigation';
 import { 
@@ -41,9 +41,13 @@ type AuthContextType = {
   unlockUniversities: () => Promise<void>;
   updateTasks: (tasks: {title: string, completed: boolean}[]) => Promise<void>;
   updateTaskStatus: (taskId: string, completed: boolean) => Promise<void>;
+  updateNotes: (notes: string) => Promise<void>;
+  addSession: (sessionData: Omit<Session, 'id' | 'userId' | 'createdAt' | 'date'> & { date: Date }) => Promise<void>;
+  deleteSession: (sessionId: string) => Promise<void>;
   shortlistedUniversities: string[];
   lockedUniversities: string[];
   applicationTasks: ApplicationTask[];
+  sessions: Session[];
   profileStrength: ProfileStrength | null;
   updateProfileStrength: (strength: AssessProfileOutput) => Promise<void>;
 };
@@ -67,16 +71,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const userStateRef = useMemoFirebase(() => firestore && firebaseUser ? doc(firestore, 'user_state', firebaseUser.uid) : null, [firestore, firebaseUser]);
   const shortlistedUniversitiesRef = useMemoFirebase(() => firestore && firebaseUser ? collection(firestore, 'users', firebaseUser.uid, 'shortlisted_universities') : null, [firestore, firebaseUser]);
   const tasksRef = useMemoFirebase(() => firestore && firebaseUser ? collection(firestore, 'users', firebaseUser.uid, 'tasks') : null, [firestore, firebaseUser]);
+  const sessionsRef = useMemoFirebase(() => firestore && firebaseUser ? collection(firestore, 'users', firebaseUser.uid, 'sessions') : null, [firestore, firebaseUser]);
   
   const { data: userBase, isLoading: loadingBase } = useDoc<AppUser>(userBaseRef);
   const { data: userProfile, isLoading: loadingProfile } = useDoc<UserProfile>(userProfileRef);
   const { data: userState, isLoading: loadingState } = useDoc<UserState>(userStateRef);
   const { data: shortlisted, isLoading: loadingShortlisted } = useCollection<ShortlistedUniversity>(shortlistedUniversitiesRef);
   const { data: tasks, isLoading: loadingTasks } = useCollection<ApplicationTask>(tasksRef);
+  const { data: sessions, isLoading: loadingSessions } = useCollection<Session>(sessionsRef);
 
   // --- State Composition Effect ---
   useEffect(() => {
-    const isSystemLoading = isAuthLoading || loadingBase || loadingProfile || loadingState || loadingShortlisted || loadingTasks;
+    const isSystemLoading = isAuthLoading || loadingBase || loadingProfile || loadingState || loadingShortlisted || loadingTasks || loadingSessions;
     setAuthProviderLoading(isSystemLoading);
 
     if (isSystemLoading || !firebaseUser) {
@@ -91,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         state: userState || null,
         shortlisted: shortlisted || [],
         tasks: tasks || [],
+        sessions: sessions || [],
         // for convenience
         shortlistedUniversities: (shortlisted || []).map(u => u.universityId),
         lockedUniversities: (shortlisted || []).filter(u => u.locked).map(u => u.universityId),
@@ -99,8 +106,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAppUser(combinedUser);
     }
   }, [
-    firebaseUser, userBase, userProfile, userState, shortlisted, tasks,
-    isAuthLoading, loadingBase, loadingProfile, loadingState, loadingShortlisted, loadingTasks
+    firebaseUser, userBase, userProfile, userState, shortlisted, tasks, sessions,
+    isAuthLoading, loadingBase, loadingProfile, loadingState, loadingShortlisted, loadingTasks, loadingSessions
   ]);
 
   const handleRedirect = (user: AppUser) => {
@@ -172,7 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const batch = writeBatch(firestore);
 
       const newUserDocRef = doc(firestore, 'users', user.uid);
-      const newUser: Omit<AppUser, 'profile' | 'state' | 'shortlisted' | 'tasks' | 'shortlistedUniversities' | 'lockedUniversities' | 'applicationTasks'> = {
+      const newUser: Omit<AppUser, 'profile' | 'state' | 'shortlisted' | 'tasks' | 'sessions' | 'shortlistedUniversities' | 'lockedUniversities' | 'applicationTasks'> = {
         id: user.uid,
         email: user.email,
         fullName: fullName,
@@ -238,7 +245,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!userDocSnap.exists()) {
         const batch = writeBatch(firestore);
 
-        const newUserBase: Omit<AppUser, 'profile' | 'state' | 'shortlisted' | 'tasks'| 'shortlistedUniversities' | 'lockedUniversities' | 'applicationTasks'> = {
+        const newUserBase: Omit<AppUser, 'profile' | 'state' | 'shortlisted' | 'tasks' | 'sessions' |'shortlistedUniversities' | 'lockedUniversities' | 'applicationTasks'> = {
           id: user.uid,
           email: user.email,
           fullName: user.displayName,
@@ -257,7 +264,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         batch.set(newUserStateRef, newUserState);
 
         await batch.commit();
-        userData = { ...newUserBase, profile: null, state: newUserState, shortlisted: [], tasks: [], shortlistedUniversities: [], lockedUniversities: [], applicationTasks: [] };
+        userData = { ...newUserBase, profile: null, state: newUserState, shortlisted: [], tasks: [], sessions: [], shortlistedUniversities: [], lockedUniversities: [], applicationTasks: [] };
       } else {
         userData = userDocSnap.data() as AppUser;
       }
@@ -427,6 +434,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await updateDoc(taskRef, { completed });
   }, [firestore, firebaseUser]);
 
+  const updateNotes = useCallback(async (notes: string) => {
+    if (!firebaseUser) return;
+    const userStateDocRef = doc(firestore, 'user_state', firebaseUser.uid);
+    await setDoc(userStateDocRef, { notes }, { merge: true });
+    toast({
+        title: 'Notes Saved!',
+        description: 'Your notes have been saved.',
+    });
+  }, [firestore, firebaseUser, toast]);
+
+  const addSession = useCallback(async (sessionData: Omit<Session, 'id' | 'userId' | 'createdAt' | 'date'> & { date: Date }) => {
+    if (!firebaseUser) return;
+    const sessionCollectionRef = collection(firestore, 'users', firebaseUser.uid, 'sessions');
+    const newSessionRef = doc(sessionCollectionRef);
+    const newSession = {
+      userId: firebaseUser.uid,
+      title: sessionData.title,
+      type: sessionData.type,
+      date: sessionData.date, // The date is already a JS Date object
+      createdAt: serverTimestamp(),
+      id: newSessionRef.id,
+    };
+    await setDoc(newSessionRef, newSession);
+    toast({ title: 'Session Added', description: `${sessionData.title} has been scheduled.` });
+  }, [firestore, firebaseUser, toast]);
+
+  const deleteSession = useCallback(async (sessionId: string) => {
+    if (!firebaseUser) return;
+    const sessionDocRef = doc(firestore, 'users', firebaseUser.uid, 'sessions', sessionId);
+    await deleteDoc(sessionDocRef);
+    toast({ title: 'Session Removed' });
+  }, [firestore, firebaseUser, toast]);
+
 
   const value = useMemo(() => ({
     user: appUser,
@@ -444,12 +484,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     unlockUniversities,
     updateTasks,
     updateTaskStatus,
+    updateNotes,
+    addSession,
+    deleteSession,
     shortlistedUniversities: appUser?.shortlistedUniversities || [],
     lockedUniversities: appUser?.lockedUniversities || [],
     applicationTasks: appUser?.applicationTasks || [],
+    sessions: appUser?.sessions || [],
     profileStrength: appUser?.state?.profileStrength || null,
     updateProfileStrength,
-  }), [appUser, authProviderLoading, login, signup, googleSignIn, sendPasswordReset, logout, updateProfile, setStage, shortlistUniversity, removeShortlistedUniversity, lockUniversities, unlockUniversities, updateTasks, updateTaskStatus, updateProfileStrength]);
+  }), [appUser, authProviderLoading, login, signup, googleSignIn, sendPasswordReset, logout, updateProfile, setStage, shortlistUniversity, removeShortlistedUniversity, lockUniversities, unlockUniversities, updateTasks, updateTaskStatus, updateNotes, addSession, deleteSession, updateProfileStrength]);
 
   return (
     <AuthContext.Provider value={value}>

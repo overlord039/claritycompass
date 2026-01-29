@@ -45,6 +45,13 @@ service cloud.firestore {
         allow create: if isCreatingOwnSubDoc(userId);
         allow update, delete: if isOwner(userId) && isOwnerOf(resource.data);
       }
+
+      // sessions/{sessionId}: User-specific scheduled sessions.
+      match /sessions/{sessionId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isCreatingOwnSubDoc(userId);
+        allow update, delete: if isOwner(userId) && isOwnerOf(resource.data);
+      }
     }
     
     // profiles/{uid}: Detailed, user-editable profile data.

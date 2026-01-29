@@ -94,6 +94,10 @@
               }
             }
           }
+        },
+        "notes": {
+          "type": "string",
+          "description": "User's private notes."
         }
       },
       "required": ["currentStage", "profileStrength"]
@@ -141,6 +145,20 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "userId", "title", "stage", "completed", "generatedBy", "createdAt"]
+    },
+    "Session": {
+      "title": "Session",
+      "type": "object",
+      "description": "An important date or session scheduled by the user.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "type": { "type": "string", "enum": ["Exam", "Deadline", "Meeting", "Reminder"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "title", "date", "type", "createdAt"]
     }
   },
   "auth": {
@@ -177,6 +195,11 @@
         "path": "/users/{userId}/tasks/{taskId}",
         "definition": { "schema": { "$ref": "#/entities/Task" } },
         "description": "Stores user-specific application tasks."
+      },
+      {
+        "path": "/users/{userId}/sessions/{sessionId}",
+        "definition": { "schema": { "$ref": "#/entities/Session" } },
+        "description": "Stores user-specific scheduled sessions."
       }
     ]
   }
