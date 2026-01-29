@@ -1,6 +1,5 @@
 
 
-
 export type ActionPlan = {
     summary: string;
     requiredDocuments: string[];

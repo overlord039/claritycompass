@@ -1,0 +1,206 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "type": "object",
+      "description": "Core user information and authentication details.",
+      "properties": {
+        "id": { "type": "string", "description": "Matches the Firebase Auth UID." },
+        "fullName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "onboardingComplete": { "type": "boolean" },
+        "currentStage": { "type": "number", "description": "The user's current stage in the application process (1-4)." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of user creation." }
+      },
+      "required": ["id", "fullName", "email", "onboardingComplete", "currentStage", "createdAt"]
+    },
+    "Profile": {
+      "title": "Profile",
+      "type": "object",
+      "description": "Detailed user profile for AI assessment.",
+      "properties": {
+        "academic": {
+          "type": "object",
+          "properties": {
+            "educationLevel": { "type": "string" },
+            "degree": { "type": "string" },
+            "graduationYear": { "type": "string" },
+            "gpa": { "type": "string" }
+          }
+        },
+        "studyGoal": {
+          "type": "object",
+          "properties": {
+            "intendedDegree": { "type": "string" },
+            "fieldOfStudy": { "type": "string" },
+            "targetIntakeYear": { "type": "string" },
+            "preferredCountries": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "budget": {
+          "type": "object",
+          "properties": {
+            "budgetRangePerYear": { "type": "string" },
+            "fundingType": { "type": "string" }
+          }
+        },
+        "readiness": {
+          "type": "object",
+          "properties": {
+            "ieltsStatus": { "type": "string" },
+            "greStatus": { "type": "string" },
+            "sopStatus": { "type": "string" }
+          }
+        },
+        "lastUpdated": { "type": "string", "format": "date-time" }
+      }
+    },
+    "UserState": {
+      "title": "UserState",
+      "type": "object",
+      "description": "Stores the user's current state and AI-driven assessments.",
+      "properties": {
+        "currentStage": { "type": "number" },
+        "profileStrength": {
+          "type": "object",
+          "properties": {
+            "academics": { "type": "string", "enum": ["Strong", "Average", "Weak"] },
+            "exams": { "type": "string", "enum": ["Not started", "In progress", "Completed"] },
+            "sop": { "type": "string", "enum": ["Not started", "Draft", "Ready"] }
+          }
+        },
+        "recommendations": {
+          "type": "string",
+          "description": "AI-generated recommendations to improve the user's profile."
+        },
+        "actionPlan": {
+          "type": "object",
+          "description": "The AI-generated action plan for the application stage, including documents and a timeline.",
+          "properties": {
+            "summary": { "type": "string" },
+            "requiredDocuments": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "timeline": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "phase": { "type": "string" },
+                  "focus": { "type": "string" },
+                  "duration": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "notes": {
+          "type": "string",
+          "description": "User's private notes."
+        }
+      },
+      "required": ["currentStage", "profileStrength"]
+    },
+    "UniversityMaster": {
+      "title": "UniversityMaster",
+      "type": "object",
+      "description": "Master list of all universities.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "country": { "type": "string" },
+        "tuition": { "type": "string", "enum": ["Low", "Medium", "High"] },
+        "rankingTier": { "type": "string", "enum": ["Top", "Mid", "Lower"] },
+        "fields": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["id", "name", "country", "tuition", "rankingTier"]
+    },
+    "ShortlistedUniversity": {
+      "title": "ShortlistedUniversity",
+      "type": "object",
+      "description": "A user's relationship with a specific university.",
+      "properties": {
+        "id": { "type": "string", "description": "Matches the universityId from the master list." },
+        "userId": { "type": "string" },
+        "universityId": { "type": "string" },
+        "category": { "type": "string", "enum": ["Dream", "Target", "Safe"] },
+        "acceptanceChance": { "type": "string", "enum": ["Low", "Medium", "High"] },
+        "risks": { "type": "array", "items": { "type": "string" } },
+        "locked": { "type": "boolean" }
+      },
+      "required": ["id", "userId", "universityId", "category", "locked"]
+    },
+    "Task": {
+      "title": "Task",
+      "type": "object",
+      "description": "An application task for a user.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "stage": { "type": "number" },
+        "completed": { "type": "boolean" },
+        "generatedBy": { "type": "string", "enum": ["AI", "User"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "title", "stage", "completed", "generatedBy", "createdAt"]
+    },
+    "Session": {
+      "title": "Session",
+      "type": "object",
+      "description": "An important date or session scheduled by the user.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "type": { "type": "string", "enum": ["Exam", "Deadline", "Meeting", "Reminder"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "title", "date", "type", "createdAt"]
+    }
+  },
+  "auth": {
+    "providers": ["password", "google.com"]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": { "schema": { "$ref": "#/entities/User" } },
+        "description": "Stores core user data."
+      },
+      {
+        "path": "/profiles/{userId}",
+        "definition": { "schema": { "$ref": "#/entities/Profile" } },
+        "description": "Stores detailed, mutable user profile information."
+      },
+      {
+        "path": "/user_state/{userId}",
+        "definition": { "schema": { "$ref": "#/entities/UserState" } },
+        "description": "Stores dynamic user state and AI assessments."
+      },
+      {
+        "path": "/universities_master/{universityId}",
+        "definition": { "schema": { "$ref": "#/entities/UniversityMaster" } },
+        "description": "Public, read-only master list of universities."
+      },
+      {
+        "path": "/users/{userId}/shortlisted_universities/{universityId}",
+        "definition": { "schema": { "$ref": "#/entities/ShortlistedUniversity" } },
+        "description": "Stores a user's shortlisted and locked universities."
+      },
+      {
+        "path": "/users/{userId}/tasks/{taskId}",
+        "definition": { "schema": { "$ref": "#/entities/Task" } },
+        "description": "Stores user-specific application tasks."
+      },
+      {
+        "path": "/users/{userId}/sessions/{sessionId}",
+        "definition": { "schema": { "$ref": "#/entities/Session" } },
+        "description": "Stores user-specific scheduled sessions."
+      }
+    ]
+  }
+}
