@@ -5,11 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/auth-provider';
 import { Header } from '@/components/header';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  const { user, loading, setStage } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -40,40 +38,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  const handleBack = () => {
-      if (user.currentStage > 2) {
-          setStage(user.currentStage - 1);
-      } else {
-          router.push('/');
-      }
-  };
-
-  const handleNext = () => {
-      if (user.currentStage < 4) {
-          // This logic is simplified, as locking universities is a complex action
-          setStage(user.currentStage + 1);
-      }
-  };
-
-
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-grow container mx-auto px-4 md:px-6 py-8">
         {children}
       </main>
-       <footer className="sticky bottom-0 z-40 mt-auto w-full border-t bg-background/95 backdrop-blur-sm">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-            <Button variant="ghost" onClick={handleBack}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back
-            </Button>
-            <Button onClick={handleNext} disabled={user.currentStage >= 4}>
-                Next Step
-                <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-        </div>
-      </footer>
     </div>
   );
 }

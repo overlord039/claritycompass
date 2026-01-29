@@ -43,20 +43,20 @@ export function ShortlistedUniversitiesCard() {
                     Shortlisted Universities
                 </CardTitle>
                 <CardDescription>
-                    Your favorite universities at a glance. Click to manage your list.
+                    Your favorite universities at a glance.
                 </CardDescription>
             </CardHeader>
             <CardContent className="flex-grow">
                 {universities.length > 0 ? (
                     <div className="space-y-3">
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                            {universities.slice(0, 4).map(uni => (
+                            {universities.slice(0, 8).map(uni => (
                                <Link href="/dashboard/discover" key={uni.id} className="block h-full">
                                  <MiniUniversityCard university={uni} />
                                </Link>
                             ))}
                         </div>
-                         {universities.length > 4 && (
+                         {universities.length > 8 && (
                             <Button variant="outline" className="w-full mt-2" asChild>
                                 <Link href="/dashboard/discover">View all {universities.length} shortlisted</Link>
                             </Button>

@@ -30,7 +30,7 @@ export function NextMissionCard() {
 
     const stageActions: { [key: number]: { text: string; href: string; } } = {
         2: { text: "Discover Universities", href: "/dashboard/discover" },
-        3: { text: "Finalize Choices", href: "/dashboard/discover" }, // Re-using discover as it shows the list
+        3: { text: "Finalize Choices", href: "/dashboard/finalize" },
         4: { text: "Prepare Applications", href: "/dashboard/tasks" },
     };
 
@@ -60,11 +60,15 @@ export function NextMissionCard() {
                 <p className="text-muted-foreground px-4">
                     {guidance?.guidance || "Loading your next step..."}
                 </p>
-                {mission && (
+                {mission ? (
                      <Button size="lg" className="w-full mt-4" asChild>
                         <Link href={mission.href}>{mission.text}</Link>
                      </Button>
-                )}
+                ) : user.currentStage === 1 ? (
+                     <Button size="lg" className="w-full mt-4" asChild>
+                        <Link href="/onboarding">Complete Your Profile</Link>
+                     </Button>
+                ): null}
             </CardContent>
         </Card>
     );

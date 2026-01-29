@@ -3,17 +3,20 @@
 import { useState } from 'react';
 import { useAuth } from '@/providers/auth-provider';
 import { universities as allUniversities } from '@/lib/data';
-import { StageWrapper } from './stage-wrapper';
+import { StageWrapper } from '@/components/dashboard/stages/stage-wrapper';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Lock, ThumbsDown, ArrowLeft } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
-export default function Stage3Finalize() {
+export default function FinalizePage() {
     const { shortlistedUniversities, removeShortlistedUniversity, lockUniversities, setStage } = useAuth();
     const [selectedToLock, setSelectedToLock] = useState<string[]>([]);
+    const router = useRouter();
     
     const shortlisted = allUniversities.filter(u => shortlistedUniversities.includes(u.name));
 
@@ -23,8 +26,9 @@ export default function Stage3Finalize() {
         );
     };
 
-    const handleLock = () => {
-        lockUniversities(selectedToLock);
+    const handleLock = async () => {
+        await lockUniversities(selectedToLock);
+        router.push('/dashboard/tasks');
     }
 
     if (shortlisted.length === 0) {
@@ -32,9 +36,11 @@ export default function Stage3Finalize() {
             <StageWrapper icon={Lock} title="Finalize University Choices" description="Review your shortlisted universities and lock your final choices to proceed.">
                 <div className="text-center py-10">
                     <p className="text-muted-foreground mb-4">You haven't shortlisted any universities yet.</p>
-                    <Button onClick={() => setStage(2)}>
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Back to Discovery
+                    <Button onClick={() => setStage(2)} asChild>
+                        <Link href="/dashboard/discover">
+                          <ArrowLeft className="mr-2 h-4 w-4" />
+                          Back to Discovery
+                        </Link>
                     </Button>
                 </div>
             </StageWrapper>
@@ -93,9 +99,11 @@ export default function Stage3Finalize() {
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
-                     <Button variant="ghost" onClick={() => setStage(2)}>
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Back to Discovery
+                     <Button variant="ghost" asChild>
+                        <Link href="/dashboard/discover">
+                          <ArrowLeft className="mr-2 h-4 w-4" />
+                          Back to Discovery
+                        </Link>
                     </Button>
                 </div>
             </div>
