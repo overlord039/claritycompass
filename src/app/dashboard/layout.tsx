@@ -15,7 +15,7 @@ function DashboardNav() {
     const navItems = [
         { name: 'Dashboard', href: '/dashboard' },
         { name: 'Universities', href: '/dashboard/discover' },
-        { name: 'Forums', href: '/dashboard/forums' },
+        { name: 'Notes/Sessions', href: '/dashboard/forums' },
     ];
 
     return (
@@ -88,6 +88,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       )}
       <main className={cn(
         "flex-grow container mx-auto px-4 md:px-6 py-6",
+        pathname !== '/dashboard' && "overflow-y-auto",
         pathname === '/dashboard' && "overflow-hidden"
       )}>
         {children}
