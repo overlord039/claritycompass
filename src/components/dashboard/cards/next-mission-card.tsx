@@ -28,13 +28,14 @@ export function NextMissionCard() {
         fetchGuidance();
     }, [user]);
 
-    const stageActions: { [key: number]: { text: string; href: string; } } = {
-        2: { text: "Discover Universities", href: "/dashboard/discover" },
-        3: { text: "Finalize Choices", href: "/dashboard/finalize" },
-        4: { text: "Prepare Applications", href: "/dashboard/tasks" },
+    const stageDetails: { [key: number]: { name: string; text: string; href: string; } } = {
+        1: { name: "Build Profile", text: "Complete Your Profile", href: "/onboarding"},
+        2: { name: "Discover Universities", text: "Discover Universities", href: "/dashboard/discover" },
+        3: { name: "Finalize Choices", text: "Finalize Choices", href: "/dashboard/finalize" },
+        4: { name: "Prepare Applications", text: "View Your Action Plan", href: "/dashboard/tasks" },
     };
-
-    const mission = user ? stageActions[user.currentStage] : null;
+    
+    const mission = user ? stageDetails[user.currentStage] : null;
 
     if (loading || !user) {
         return (
@@ -54,7 +55,9 @@ export function NextMissionCard() {
     return (
         <Card className="flex flex-col items-center justify-center text-center h-full">
             <CardHeader>
-                <CardTitle className="text-xl font-semibold">✨ Next Mission</CardTitle>
+                <CardTitle className="text-xl font-semibold">
+                    {mission ? `Stage ${user.currentStage}: ${mission.name}` : '✨ Next Mission'}
+                </CardTitle>
             </CardHeader>
             <CardContent className="flex-grow flex flex-col items-center justify-center gap-4">
                 <p className="text-muted-foreground px-4">
@@ -64,11 +67,7 @@ export function NextMissionCard() {
                      <Button size="lg" className="w-full mt-4" asChild>
                         <Link href={mission.href}>{mission.text}</Link>
                      </Button>
-                ) : user.currentStage === 1 ? (
-                     <Button size="lg" className="w-full mt-4" asChild>
-                        <Link href="/onboarding">Complete Your Profile</Link>
-                     </Button>
-                ): null}
+                ) : null}
             </CardContent>
         </Card>
     );

@@ -13,7 +13,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowRight, Search, ThumbsUp } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Search, ThumbsUp } from 'lucide-react';
 
 type CategorizedUniversities = {
   dream: University[];
@@ -145,11 +145,17 @@ export default function DiscoverPage() {
               ))}
             </>
         )}
-        <div className="pt-6 flex flex-col items-center">
-            <p className="text-muted-foreground mb-4">{canProceed ? "You're ready for the next step!" : "Shortlist at least 1 university to continue."}</p>
+        <div className="pt-6 flex flex-col items-center gap-4">
+            <p className="text-muted-foreground">{canProceed ? "You're ready for the next step!" : "Shortlist at least 1 university to continue."}</p>
             <Button size="lg" disabled={!canProceed} onClick={handleProceed} asChild>
                 <Link href="/dashboard/finalize">
                     Finalize Your Choices <ArrowRight className="ml-2" />
+                </Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+                <Link href="/dashboard">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Dashboard
                 </Link>
             </Button>
         </div>

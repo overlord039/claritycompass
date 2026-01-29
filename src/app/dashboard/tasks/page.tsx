@@ -5,7 +5,7 @@ import { useAuth } from '@/providers/auth-provider';
 import { generateApplicationTasks } from '@/lib/actions';
 import { StageWrapper } from '@/components/dashboard/stages/stage-wrapper';
 import { Button } from '@/components/ui/button';
-import { ClipboardCheck, RotateCcw, CalendarDays, FileText, ListChecks, Lightbulb, Lock } from 'lucide-react';
+import { ClipboardCheck, RotateCcw, CalendarDays, FileText, ListChecks, Lightbulb, Lock, ArrowLeft } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { useFirestore } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function TasksPage() {
     const { user, updateTasks, unlockUniversities, updateTaskStatus, applicationTasks } = useAuth();
@@ -178,7 +179,7 @@ export default function TasksPage() {
                     </div>
                 )}
                 
-                <div className="flex justify-center gap-4 pt-4 border-t border-dashed">
+                <div className="flex justify-center items-center gap-4 pt-4 border-t border-dashed">
                      <AlertDialog>
                         <AlertDialogTrigger asChild>
                             <Button variant="outline" disabled={(user?.lockedUniversities?.length ?? 0) === 0}>
@@ -199,6 +200,12 @@ export default function TasksPage() {
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
+                    <Button variant="outline" asChild>
+                        <Link href="/dashboard">
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Back to Dashboard
+                        </Link>
+                    </Button>
                 </div>
             </div>
         </StageWrapper>

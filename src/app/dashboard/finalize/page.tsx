@@ -99,12 +99,19 @@ export default function FinalizePage() {
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
-                     <Button variant="ghost" asChild>
-                        <Link href="/dashboard/discover">
-                          <ArrowLeft className="mr-2 h-4 w-4" />
-                          Back to Discovery
-                        </Link>
-                    </Button>
+                    <div className="flex items-center gap-4">
+                        <Button variant="ghost" asChild>
+                            <Link href="/dashboard/discover">
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Back to Discovery
+                            </Link>
+                        </Button>
+                         <Button variant="outline" size="sm" asChild>
+                            <Link href="/dashboard">
+                                Back to Dashboard
+                            </Link>
+                        </Button>
+                    </div>
                 </div>
             </div>
         </StageWrapper>
