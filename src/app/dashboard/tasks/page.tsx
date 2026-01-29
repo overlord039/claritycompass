@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/providers/auth-provider';
-import { generateApplicationTasks } from '@/lib/actions';
 import { StageWrapper } from '@/components/dashboard/stages/stage-wrapper';
 import { Button } from '@/components/ui/button';
 import { ClipboardCheck, RotateCcw, CalendarDays, FileText, ListChecks, Lightbulb, Lock, ArrowLeft } from 'lucide-react';
@@ -15,6 +14,7 @@ import { useFirestore } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { universities as allUniversities } from '@/lib/data';
 
 export default function TasksPage() {
     const { user, updateTasks, unlockUniversities, updateTaskStatus, applicationTasks } = useAuth();
@@ -24,34 +24,76 @@ export default function TasksPage() {
 
     useEffect(() => {
         const generateTasks = async () => {
-            // Generate plan only if universities are locked but there's no plan yet.
             if (user && user.profile && user.lockedUniversities.length > 0 && !user.state?.actionPlan) {
                 setLoading(true);
-                // For simplicity, we'll generate tasks for the first locked university.
-                const result = await generateApplicationTasks({
-                    universityName: user.lockedUniversities[0],
-                    userProfile: JSON.stringify(user.profile),
-                    recommendations: user.state?.recommendations || 'No specific recommendations provided.',
-                });
 
-                if (result) {
-                    const { tasks, applicationStrategy } = result;
+                const lockedUniversity = allUniversities.find(u => u.name === user.lockedUniversities[0]);
 
-                    // Persist the action plan to user's state document
-                    if (firestore && user.uid) {
-                        const userStateRef = doc(firestore, 'user_state', user.uid);
-                        await setDoc(userStateRef, { actionPlan: applicationStrategy }, { merge: true });
-                    }
-
-
-                    if (tasks) {
-                        const newTasks = tasks.map(task => ({
-                            title: task.title,
-                            completed: false, // New tasks always start as not completed
-                        }));
-                        await updateTasks(newTasks);
-                    }
+                if (!lockedUniversity || !user.profile) {
+                    console.error("Locked university or user profile not found");
+                    setLoading(false);
+                    return;
                 }
+
+                const baseDocuments = [
+                    "Statement of Purpose (SOP)",
+                    "Academic Transcripts",
+                    "Resume / CV",
+                    "Passport Copy"
+                ];
+                const documents = [...baseDocuments];
+                if (lockedUniversity.ielts_required) documents.push("IELTS Score Report");
+                if (lockedUniversity.gre_required) documents.push("GRE Score Report");
+                if (user.profile.studyGoal.intendedDegree === "masters-mba") documents.push("Work Experience Letter");
+                if (user.profile.budget.fundingType !== "self-funded") documents.push("Financial Documents");
+
+                const timeline = [
+                    { phase: "Phase 1", focus: "Profile & Document Preparation", duration: "1-2 Weeks" },
+                    { phase: "Phase 2", focus: "SOP Finalization", duration: "2-3 Weeks" },
+                    { phase: "Phase 3", focus: "Exam Completion (if required)", duration: "4-6 Weeks" },
+                    { phase: "Phase 4", focus: "Application Form Submission", duration: "1 Week" },
+                    { phase: "Phase 5", focus: "Post-Submission Tracking", duration: "Ongoing" },
+                ];
+
+                const generatedTasks: { title: string, completed: boolean }[] = [];
+                
+                generatedTasks.push({
+                    title: "Draft Statement of Purpose",
+                    completed: user.profile.readiness.sopStatus === "Ready"
+                });
+                generatedTasks.push({ title: "Collect academic transcripts", completed: false });
+                generatedTasks.push({ title: "Prepare academic resume", completed: false });
+
+                if (lockedUniversity.ielts_required && user.profile.readiness.ieltsStatus !== 'Completed') {
+                    generatedTasks.push({ title: "Prepare and complete IELTS exam", completed: false });
+                }
+                if (lockedUniversity.gre_required && user.profile.readiness.greStatus !== 'Completed') {
+                    generatedTasks.push({ title: "Prepare and complete GRE exam", completed: false });
+                }
+
+                if (user.profile.budget.fundingType === "loan-dependent") {
+                    generatedTasks.push({ title: "Start education loan process", completed: false });
+                }
+                if (user.profile.budget.fundingType === "scholarship-dependent") {
+                    generatedTasks.push({ title: "Research and apply for scholarships", completed: false });
+                }
+
+                if (user.profile.studyGoal.intendedDegree === "masters-mba") {
+                    generatedTasks.push({ title: "Collect work experience documents", completed: false });
+                }
+
+                const applicationStrategy = {
+                    summary: `This is your personalized action plan for applying to ${lockedUniversity.name}. Follow these steps to build a strong application.`,
+                    requiredDocuments: documents,
+                    timeline: timeline
+                };
+
+                if (firestore && user.uid) {
+                    const userStateRef = doc(firestore, 'user_state', user.uid);
+                    await setDoc(userStateRef, { actionPlan: applicationStrategy }, { merge: true });
+                    await updateTasks(generatedTasks);
+                }
+
                 setLoading(false);
             }
         };
@@ -75,7 +117,7 @@ export default function TasksPage() {
             <StageWrapper 
                 icon={ClipboardCheck} 
                 title="Preparing Your Action Plan" 
-                description={`You've locked your university choices! The AI is now generating your personalized strategy and tasks.`}
+                description={`You've locked your university choices! The system is now generating your personalized strategy and tasks.`}
             >
                 <div className="space-y-8 py-4">
                     {user?.lockedUniversities && user.lockedUniversities.length > 0 && (
