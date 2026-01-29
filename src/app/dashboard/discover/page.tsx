@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/providers/auth-provider';
 import type { University } from '@/lib/types';
 import { universities as allUniversities } from '@/lib/data';
-import { universityDiscoveryEngine } from '@/lib/actions';
 import { StageWrapper } from '@/components/dashboard/stages/stage-wrapper';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +14,21 @@ import { ArrowLeft, ArrowRight, ThumbsUp, Rocket, Target, ShieldCheck, Search, L
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 
-function UniversityCard({ university, onShortlist, isShortlisted }: { university: University; onShortlist: () => void; isShortlisted: boolean }) {
+type UniversityRecommendation = {
+  id: string;
+  name: string;
+  country: string;
+  city: string;
+  estimatedAnnualCost: number;
+  acceptanceLikelihood: "High" | "Medium" | "Low";
+  whyItFits: string;
+  risks: string[];
+  imageUrl: string;
+  imageHint: string;
+};
+
+
+function UniversityCard({ university, onShortlist, isShortlisted }: { university: UniversityRecommendation; onShortlist: () => void; isShortlisted: boolean }) {
     return (
         <Card className="overflow-hidden flex flex-col h-full bg-background/50 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 transition-all duration-300 group">
              <div className="relative w-full h-40">
@@ -28,18 +41,29 @@ function UniversityCard({ university, onShortlist, isShortlisted }: { university
                     data-ai-hint={university.imageHint}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                 <Badge className="absolute top-2 right-2" variant={
+                    university.acceptanceLikelihood === 'High' ? 'default' : university.acceptanceLikelihood === 'Medium' ? 'secondary' : 'destructive'
+                }>
+                    {university.acceptanceLikelihood} Likelihood
+                </Badge>
             </div>
             <CardHeader>
                 <CardTitle className="text-lg">{university.name}</CardTitle>
                 <div className="flex flex-wrap gap-2 pt-2">
-                    <Badge variant="secondary">{university.country}</Badge>
-                    <Badge variant="secondary">Cost: {university.costLevel}</Badge>
-                    <Badge variant="secondary">Chance: {university.acceptanceChance}</Badge>
+                    <Badge variant="secondary">{university.country}, {university.city}</Badge>
+                    <Badge variant="secondary">~${university.estimatedAnnualCost.toLocaleString()}/year</Badge>
                 </div>
             </CardHeader>
-            <CardContent className="flex-grow space-y-2">
-                 <p className="text-sm text-muted-foreground"><strong className="text-foreground">Fit:</strong> {university.fit}</p>
-                 <p className="text-sm text-muted-foreground"><strong className="text-foreground">Risks:</strong> {university.risks}</p>
+            <CardContent className="flex-grow space-y-2 text-sm text-muted-foreground">
+                 <p><strong className="text-foreground">Why it fits:</strong> {university.whyItFits}</p>
+                 {university.risks.length > 0 && (
+                    <div>
+                        <strong className="text-foreground">Risks to consider:</strong>
+                        <ul className="list-disc list-inside pl-2">
+                            {university.risks.map((risk, i) => <li key={i}>{risk}</li>)}
+                        </ul>
+                    </div>
+                 )}
             </CardContent>
             <CardFooter>
                  <Button onClick={onShortlist} disabled={isShortlisted} className="w-full">
@@ -51,12 +75,12 @@ function UniversityCard({ university, onShortlist, isShortlisted }: { university
     );
 }
 
-const UniversityGrid = ({ universities, onShortlist, shortlistedUniversities }: { universities: University[], onShortlist: (name: string) => void, shortlistedUniversities: string[] }) => {
+const UniversityGrid = ({ universities, onShortlist, shortlistedUniversities }: { universities: UniversityRecommendation[], onShortlist: (name: string) => void, shortlistedUniversities: string[] }) => {
     if (universities.length === 0) {
         return (
             <div className="text-center py-16">
                 <p className="text-lg font-semibold">No universities found for this category</p>
-                <p className="text-muted-foreground">The AI couldn't find any matches based on your profile.</p>
+                <p className="text-muted-foreground">The recommendation engine couldn't find any matches based on your profile.</p>
             </div>
         )
     }
@@ -76,37 +100,147 @@ const UniversityGrid = ({ universities, onShortlist, shortlistedUniversities }: 
 
 export default function DiscoverPage() {
   const { user, setStage, shortlistUniversity, shortlistedUniversities } = useAuth();
-  const [categorizedUniversities, setCategorizedUniversities] = useState<{ dream: University[], target: University[], safe: University[] } | null>(null);
+  const [categorizedUniversities, setCategorizedUniversities] = useState<{ dream: UniversityRecommendation[], target: UniversityRecommendation[], safe: UniversityRecommendation[] } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const discover = async () => {
-        if (!user || !user.profile) return;
+    const runDiscoveryEngine = () => {
+        if (!user || !user.profile) {
+            setLoading(false);
+            return;
+        }
         setLoading(true);
 
-        const result = await universityDiscoveryEngine({
-            educationLevel: user.profile.academic.educationLevel,
-            degree: user.profile.academic.degree,
-            fieldOfStudy: user.profile.studyGoal.fieldOfStudy,
-            targetIntakeYear: user.profile.studyGoal.targetIntakeYear,
-            preferredCountries: user.profile.studyGoal.preferredCountries,
-            budgetRangePerYear: user.profile.budget.budgetRangePerYear,
-            ieltsStatus: user.profile.readiness.ieltsStatus,
-            greStatus: user.profile.readiness.greStatus,
-            sopStatus: user.profile.readiness.sopStatus,
-            universitiesData: JSON.stringify(allUniversities)
+        const { profile } = user;
+
+        const parseGpa = (gpaString?: string): number | null => {
+            if (!gpaString) return null;
+            const sanitized = gpaString.replace(/[^0-9./]/g, '');
+            const parts = sanitized.split('/');
+            if (parts.length === 0 || parts[0] === '') return null;
+            const gpaValue = parseFloat(parts[0]);
+            if (isNaN(gpaValue)) return null;
+
+            let maxGpa = parts.length > 1 ? parseFloat(parts[1]) : 0;
+            if (isNaN(maxGpa) || maxGpa === 0) {
+                if (gpaValue <= 4.0) maxGpa = 4.0;
+                else if (gpaValue <= 5.0) maxGpa = 5.0;
+                else if (gpaValue <= 10.0) maxGpa = 10.0;
+                else return gpaValue;
+            }
+            if (maxGpa === 0) return null;
+            return (gpaValue / maxGpa) * 10;
+        };
+        const userGpa = parseGpa(profile.academic.gpa);
+
+        const parseBudget = (budgetRange?: string): { min: number; max: number } => {
+            if (!budgetRange) return { min: 0, max: Infinity };
+            if (budgetRange === '<20k') return { min: 0, max: 20000 };
+            if (budgetRange === '20k-40k') return { min: 20000, max: 40000 };
+            if (budgetRange === '>40k') return { min: 40000, max: Infinity };
+            return { min: 0, max: Infinity };
+        };
+        const userBudget = parseBudget(profile.budget.budgetRangePerYear);
+
+        const fieldEquivalences: { [key: string]: string[] } = {
+            'CS/IT': ['Computer Science', 'CS', 'IT', 'Data Science', 'AI', 'Data Analytics', 'Applied IT', 'Analytics'],
+            'Business': ['Business', 'Management', 'Business Analytics', 'Analytics'],
+            'Engineering': ['Engineering'],
+            'MBBS': ['MBBS'],
+            'Research': ['Research'],
+        };
+        const mapToGeneralField = (field: string): string | null => {
+            for (const generalField in fieldEquivalences) {
+                if (fieldEquivalences[generalField].map(f => f.toLowerCase()).includes(field.toLowerCase())) {
+                    return generalField;
+                }
+            }
+            return null;
+        };
+        const userTargetField = mapToGeneralField(profile.studyGoal.fieldOfStudy);
+
+        const countryFiltered = allUniversities.filter(uni =>
+            profile.studyGoal.preferredCountries.some(prefCountry => uni.country.toLowerCase() === prefCountry.toLowerCase())
+        );
+
+        const fieldFiltered = countryFiltered.filter(uni =>
+            uni.fields.some(field => mapToGeneralField(field) === userTargetField)
+        );
+
+        const recommendations = fieldFiltered.map(uni => {
+            const estimatedAnnualCost = uni.annual_tuition_usd + uni.living_cost_usd;
+            
+            let academicFit: 'Strong' | 'Acceptable' | 'Borderline' | 'Weak' = 'Weak';
+            let gpaRisk = '';
+            if (userGpa) {
+                const gpaDifference = userGpa - uni.avg_gpa_required;
+                if (gpaDifference >= 0.5) academicFit = 'Strong';
+                else if (gpaDifference >= -0.2) academicFit = 'Acceptable';
+                else if (gpaDifference >= -0.5) {
+                    academicFit = 'Borderline';
+                    gpaRisk = `Your GPA (${profile.academic.gpa}) is slightly below the average required (${uni.avg_gpa_required}/10).`;
+                } else {
+                    academicFit = 'Weak';
+                    gpaRisk = `Your GPA (${profile.academic.gpa}) is below the average required (${uni.avg_gpa_required}/10).`;
+                }
+            }
+
+            let examFit: 'Good' | 'Weak' = 'Good';
+            const examRisks: string[] = [];
+            if (uni.gre_required && profile.readiness.greStatus !== 'Completed') {
+                examFit = 'Weak';
+                examRisks.push('GRE is required but not marked as completed.');
+            }
+            if (uni.ielts_required && profile.readiness.ieltsStatus !== 'Completed') {
+                if (uni.ielts_required > 6.0) examFit = 'Weak';
+                examRisks.push('IELTS/TOEFL is required but not marked as completed.');
+            }
+
+            let acceptanceLikelihood: 'High' | 'Medium' | 'Low' = 'Low';
+            if (academicFit === 'Strong' && examFit === 'Good') acceptanceLikelihood = 'High';
+            else if (academicFit === 'Acceptable' && examFit === 'Good') acceptanceLikelihood = 'Medium';
+            else if (academicFit === 'Borderline') acceptanceLikelihood = 'Low';
+            
+            const whyItFits = `${uni.name} offers a strong program in ${profile.studyGoal.fieldOfStudy}. With your GPA, it's a ${academicFit.toLowerCase()} academic fit.`;
+            const risks: string[] = [];
+            if (gpaRisk) risks.push(gpaRisk);
+            risks.push(...examRisks);
+            if (estimatedAnnualCost > userBudget.max) {
+                risks.push(`Estimated annual cost of ~$${estimatedAnnualCost.toLocaleString()} exceeds your budget.`);
+            }
+            if (profile.budget.fundingType === 'scholarship-dependent') {
+                risks.push('Your plan is dependent on securing a scholarship.');
+            }
+
+            return { ...uni, academicFit, examFit, estimatedAnnualCost, acceptanceLikelihood, whyItFits, risks };
         });
 
-        if (result) {
-            const dream = allUniversities.filter(u => result.dreamUniversities.includes(u.name));
-            const target = allUniversities.filter(u => result.targetUniversities.includes(u.name));
-            const safe = allUniversities.filter(u => result.safeUniversities.includes(u.name));
-            setCategorizedUniversities({ dream, target, safe });
-        }
+        const dream: UniversityRecommendation[] = [];
+        const target: UniversityRecommendation[] = [];
+        const safe: UniversityRecommendation[] = [];
+
+        recommendations.forEach(rec => {
+            const recommendationOutput: UniversityRecommendation = {
+                id: rec.id, name: rec.name, country: rec.country, city: rec.city,
+                estimatedAnnualCost: rec.estimatedAnnualCost,
+                acceptanceLikelihood: rec.acceptanceLikelihood,
+                whyItFits: rec.whyItFits, risks: rec.risks,
+                imageUrl: rec.imageUrl, imageHint: rec.imageHint,
+            };
+            if (rec.acceptance_difficulty === 'High' && (rec.academicFit === 'Acceptable' || rec.academicFit === 'Borderline')) {
+                dream.push(recommendationOutput);
+            } else if (rec.acceptance_difficulty === 'Medium' && rec.academicFit === 'Acceptable') {
+                target.push(recommendationOutput);
+            } else if (rec.acceptance_difficulty === 'Low' && rec.academicFit === 'Strong') {
+                safe.push(recommendationOutput);
+            }
+        });
+
+        setCategorizedUniversities({ dream, target, safe });
         setLoading(false);
     };
 
-    discover();
+    runDiscoveryEngine();
   }, [user]);
 
   const canProceed = shortlistedUniversities.length >= 1;
@@ -123,7 +257,7 @@ export default function DiscoverPage() {
         {loading ? (
             <div className='text-center py-10'>
                 <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-                <p className="mt-4 text-muted-foreground">The AI is analyzing your profile to find the best universities for you...</p>
+                <p className="mt-4 text-muted-foreground">The recommendation engine is analyzing your profile to find the best universities for you...</p>
                  <div className="mt-8 grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <Skeleton className="h-96 w-full" />
                     <Skeleton className="h-96 w-full" />
@@ -133,9 +267,9 @@ export default function DiscoverPage() {
         ) : categorizedUniversities ? (
             <Tabs defaultValue="target" className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="dream"><Rocket className="mr-2 h-4 w-4" />Dream</TabsTrigger>
-                    <TabsTrigger value="target"><Target className="mr-2 h-4 w-4" />Target</TabsTrigger>
-                    <TabsTrigger value="safe"><ShieldCheck className="mr-2 h-4 w-4" />Safe</TabsTrigger>
+                    <TabsTrigger value="dream"><Rocket className="mr-2 h-4 w-4" />Dream ({categorizedUniversities.dream.length})</TabsTrigger>
+                    <TabsTrigger value="target"><Target className="mr-2 h-4 w-4" />Target ({categorizedUniversities.target.length})</TabsTrigger>
+                    <TabsTrigger value="safe"><ShieldCheck className="mr-2 h-4 w-4" />Safe ({categorizedUniversities.safe.length})</TabsTrigger>
                 </TabsList>
                 <TabsContent value="dream" className="mt-6">
                     <UniversityGrid universities={categorizedUniversities.dream} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} />
@@ -150,7 +284,7 @@ export default function DiscoverPage() {
         ) : (
              <div className="text-center py-16">
                 <p className="text-lg font-semibold">Could not generate recommendations</p>
-                <p className="text-muted-foreground">There was an error while the AI was analyzing your profile.</p>
+                <p className="text-muted-foreground">There was an error while the recommendation engine was analyzing your profile.</p>
             </div>
         )}
 
