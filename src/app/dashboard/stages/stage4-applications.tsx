@@ -5,7 +5,7 @@ import { useAuth } from '@/providers/auth-provider';
 import { generateApplicationTasks } from '@/lib/actions';
 import { StageWrapper } from './stage-wrapper';
 import { Button } from '@/components/ui/button';
-import { ClipboardCheck, RotateCcw, CalendarDays, FileText, ListChecks, Lightbulb } from 'lucide-react';
+import { ClipboardCheck, RotateCcw, CalendarDays, FileText, ListChecks, Lightbulb, Lock } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
@@ -67,17 +67,35 @@ export default function Stage4Applications() {
             <StageWrapper 
                 icon={ClipboardCheck} 
                 title="Preparing Your Action Plan" 
-                description={`You've locked in ${user?.lockedUniversities.join(', ')}! The AI is now generating your personalized tasks.`}
+                description={`The AI is now generating your personalized tasks based on your final university choices.`}
             >
-                <div className="space-y-6 text-center py-8">
-                    <div className="flex justify-center">
-                        <Skeleton className="w-16 h-16 rounded-full" />
-                    </div>
-                    <Skeleton className="h-6 w-1/2 mx-auto" />
-                    {user?.state?.recommendations && (
-                        <p className="text-muted-foreground text-sm whitespace-pre-line px-4">{user.state.recommendations}</p>
+                <div className="space-y-8 py-4">
+                    {user?.lockedUniversities && user.lockedUniversities.length > 0 && (
+                        <div>
+                            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2"><Lock className="h-5 w-5 text-primary" /> Locked Universities</h3>
+                            <div className="grid grid-cols-1 gap-2">
+                                {user.lockedUniversities.map((uni, index) => (
+                                    <div key={index} className="p-3 rounded-md bg-background/50 border">
+                                        <p className="font-semibold text-foreground">{uni}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     )}
-                    <div className="pt-4">
+
+                    <div className="text-center">
+                        <div className="flex justify-center mb-6">
+                            <Skeleton className="w-16 h-16 rounded-full" />
+                        </div>
+
+                        {user?.state?.recommendations && (
+                            <div className='mb-6'>
+                                <h3 className="text-lg font-semibold mb-3 flex items-center justify-center gap-2"><Lightbulb className="h-5 w-5 text-primary" /> Key Recommendations</h3>
+                                <p className="text-muted-foreground text-sm whitespace-pre-line px-4">{user.state.recommendations}</p>
+                            </div>
+                        )}
+                        
+                        <p className='text-muted-foreground text-sm mb-2'>Generating timeline, documents, and tasks...</p>
                         <Skeleton className="h-40 w-full" />
                     </div>
                 </div>
