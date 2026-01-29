@@ -41,6 +41,7 @@ function DashboardNav() {
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -78,11 +79,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <DashboardNav />
           </div>
       </div>
-      <div className="border-b bg-card py-6">
-          <div className="container mx-auto px-4 md:px-6">
-            <StageIndicator currentStage={user.currentStage} />
-          </div>
-      </div>
+      {pathname === '/dashboard' && (
+        <div className="border-b bg-card py-6">
+            <div className="container mx-auto px-4 md:px-6">
+              <StageIndicator currentStage={user.currentStage} />
+            </div>
+        </div>
+      )}
       <main className="flex-grow container mx-auto px-4 md:px-6 py-6 overflow-hidden">
         {children}
       </main>
