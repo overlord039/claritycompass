@@ -4,12 +4,15 @@ import { useAuth } from "@/providers/auth-provider";
 import { assessProfile } from "@/lib/actions";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
-import { Zap, ShieldCheck, BookOpen, FileText, Activity } from "lucide-react";
+import { Zap, ShieldCheck, BookOpen, FileText, Activity, Edit } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 import { cn } from '@/lib/utils';
 import type { UserProfile } from '@/lib/types';
 import type { AssessProfileInput } from '@/ai/flows/ai-profile-assessment';
 import { CircularProgress } from '@/components/ui/circular-progress';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 const calculateProfileScore = (profile: UserProfile | null): number => {
     if (!profile) return 0;
@@ -130,7 +133,7 @@ const transformProfileForAI = (profile: UserProfile): AssessProfileInput => {
 };
 
 export function ProfileStrength() {
-    const { user, profileStrength, updateProfileStrength } = useAuth();
+    const { user, profileStrength, updateProfileStrength, updateProfile } = useAuth();
     
     const profileScore = useMemo(() => calculateProfileScore(user?.profile || null), [user?.profile]);
     const profileStatus = getProfileStatus(profileScore);
@@ -147,11 +150,18 @@ export function ProfileStrength() {
         runAssessment();
     }, [user, profileStrength, updateProfileStrength]);
 
-    const strengthItems = [
-        { icon: ShieldCheck, label: 'Academics', value: profileStrength?.academics },
-        { icon: BookOpen, label: 'Exams', value: profileStrength?.exams },
-        { icon: FileText, label: 'SOP', value: profileStrength?.sop },
-    ];
+    const handleReadinessChange = (field: keyof UserProfile['readiness'], value: string) => {
+        if (user?.profile) {
+            const newProfile: UserProfile = {
+                ...user.profile,
+                readiness: {
+                    ...user.profile.readiness,
+                    [field]: value,
+                },
+            };
+            updateProfile(newProfile);
+        }
+    };
 
     const getStrengthColor = (value: string | null | undefined) => {
         switch (value) {
@@ -172,7 +182,7 @@ export function ProfileStrength() {
     };
 
     const renderContent = () => {
-        if (!profileStrength || !user?.profile) {
+        if (!user || !user.profile || !profileStrength) {
             return <Skeleton className="h-36 w-full" />;
         }
 
@@ -186,16 +196,111 @@ export function ProfileStrength() {
                             <span className="text-sm text-muted-foreground">Strength</span>
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 flex-grow">
-                        {strengthItems.map(item => (
-                            <div key={item.label} className="p-4 rounded-lg bg-background/30 border flex flex-col items-center text-center justify-center h-full">
-                                <item.icon className="w-7 h-7 text-primary mb-2" />
-                                <p className="font-semibold text-foreground mb-1">{item.label}</p>
-                                <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-medium border', getStrengthColor(item.value))}>
-                                    {item.value || 'N/A'}
-                                </span>
-                            </div>
-                        ))}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 flex-grow w-full">
+                        {/* Academics Card */}
+                        <div className="p-4 rounded-lg bg-background/30 border flex flex-col items-center text-center justify-center h-full">
+                            <ShieldCheck className="w-7 h-7 text-primary mb-2" />
+                            <p className="font-semibold text-foreground mb-1">Academics</p>
+                            <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-medium border', getStrengthColor(profileStrength.academics))}>
+                                {profileStrength.academics || 'N/A'}
+                            </span>
+                        </div>
+
+                        {/* Exams Card */}
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <div className="relative p-4 rounded-lg bg-background/30 border flex flex-col items-center text-center justify-center h-full cursor-pointer hover:bg-accent/50 transition-colors">
+                                    <Edit className="w-3 h-3 absolute top-2 right-2 text-muted-foreground" />
+                                    <BookOpen className="w-7 h-7 text-primary mb-2" />
+                                    <p className="font-semibold text-foreground mb-1">Exams</p>
+                                    <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-medium border', getStrengthColor(profileStrength.exams))}>
+                                        {profileStrength.exams || 'N/A'}
+                                    </span>
+                                </div>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-64">
+                                <div className="grid gap-4">
+                                    <div className="space-y-2">
+                                        <h4 className="font-medium leading-none">Update Exam Status</h4>
+                                        <p className="text-sm text-muted-foreground">This will re-run the AI analysis.</p>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <div className="grid grid-cols-3 items-center gap-4">
+                                            <Label htmlFor="ielts-status">IELTS/TOEFL</Label>
+                                            <Select
+                                                value={user.profile.readiness.ieltsStatus}
+                                                onValueChange={(value) => handleReadinessChange('ieltsStatus', value)}
+                                            >
+                                                <SelectTrigger id="ielts-status" className="col-span-2 h-8">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="Not started">Not Started</SelectItem>
+                                                    <SelectItem value="In progress">In Progress</SelectItem>
+                                                    <SelectItem value="Completed">Completed</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="grid grid-cols-3 items-center gap-4">
+                                            <Label htmlFor="gre-status">GRE/GMAT</Label>
+                                            <Select
+                                                value={user.profile.readiness.greStatus}
+                                                onValueChange={(value) => handleReadinessChange('greStatus', value)}
+                                            >
+                                                <SelectTrigger id="gre-status" className="col-span-2 h-8">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="Not started">Not Started</SelectItem>
+                                                    <SelectItem value="In progress">In Progress</SelectItem>
+                                                    <SelectItem value="Completed">Completed</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                        
+                        {/* SOP Card */}
+                        <Popover>
+                             <PopoverTrigger asChild>
+                                <div className="relative p-4 rounded-lg bg-background/30 border flex flex-col items-center text-center justify-center h-full cursor-pointer hover:bg-accent/50 transition-colors">
+                                    <Edit className="w-3 h-3 absolute top-2 right-2 text-muted-foreground" />
+                                    <FileText className="w-7 h-7 text-primary mb-2" />
+                                    <p className="font-semibold text-foreground mb-1">SOP</p>
+                                     <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-medium border', getStrengthColor(profileStrength.sop))}>
+                                        {profileStrength.sop || 'N/A'}
+                                    </span>
+                                </div>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-64">
+                                <div className="grid gap-4">
+                                    <div className="space-y-2">
+                                        <h4 className="font-medium leading-none">Update SOP Status</h4>
+                                        <p className="text-sm text-muted-foreground">This will re-run the AI analysis.</p>
+                                    </div>
+                                    <div className="grid gap-2">
+                                         <div className="grid grid-cols-3 items-center gap-4">
+                                            <Label htmlFor="sop-status">SOP</Label>
+                                            <Select
+                                                value={user.profile.readiness.sopStatus}
+                                                onValueChange={(value) => handleReadinessChange('sopStatus', value)}
+                                            >
+                                                <SelectTrigger id="sop-status" className="col-span-2 h-8">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="Not started">Not Started</SelectItem>
+                                                    <SelectItem value="Draft">Draft</SelectItem>
+                                                    <SelectItem value="Ready">Ready</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
                     </div>
                 </div>
 
