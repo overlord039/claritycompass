@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/carousel"
 import React from 'react';
 import Autoplay from 'embla-carousel-autoplay';
+import Image from 'next/image';
 
 export default function Home() {
   const plugin = React.useRef(
@@ -103,12 +104,22 @@ export default function Home() {
                       {universities.map((uni, index) => (
                           <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
                               <div className="p-1">
-                                  <div className="bg-card/30 backdrop-blur-sm p-6 rounded-lg h-full flex flex-col items-center text-center">
-                                      <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                                        <UniversityIcon className="w-8 h-8 text-primary"/>
+                                  <div className="bg-card/30 backdrop-blur-sm rounded-lg h-full flex flex-col overflow-hidden group">
+                                      <div className="relative w-full h-40">
+                                          <Image
+                                              src={uni.imageUrl}
+                                              alt={uni.name}
+                                              fill
+                                              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                                              className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                              data-ai-hint={uni.imageHint}
+                                          />
+                                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                                       </div>
-                                      <h3 className="font-semibold text-lg">{uni.name}</h3>
-                                      <p className="text-muted-foreground text-sm">{uni.country}</p>
+                                      <div className="p-4 text-center">
+                                          <h3 className="font-semibold text-base">{uni.name}</h3>
+                                          <p className="text-muted-foreground text-xs">{uni.country}</p>
+                                      </div>
                                   </div>
                               </div>
                           </CarouselItem>
