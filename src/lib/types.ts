@@ -1,10 +1,12 @@
 
 
 export type ActionPlan = {
+    summary: string;
     requiredDocuments: string[];
     timeline: {
-        milestone: string;
-        deadline: string;
+        phase: string;
+        focus: string;
+        duration: string;
     }[];
 };
 

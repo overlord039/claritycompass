@@ -3,10 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/providers/auth-provider';
 import { generateApplicationTasks } from '@/lib/actions';
-import type { ApplicationTaskOutput } from '@/ai/flows/application-task-generator';
 import { StageWrapper } from './stage-wrapper';
 import { Button } from '@/components/ui/button';
-import { ClipboardCheck, RotateCcw, CalendarDays, FileText, ListChecks } from 'lucide-react';
+import { ClipboardCheck, RotateCcw, CalendarDays, FileText, ListChecks, Lightbulb } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
@@ -32,16 +31,16 @@ export default function Stage4Applications() {
                 });
 
                 if (result) {
-                    const { tasks, ...plan } = result;
+                    const { tasks, applicationStrategy } = result;
 
                     // Persist the action plan to user's state document
                     const userStateRef = doc(firestore, 'user_state', user.uid);
-                    await setDoc(userStateRef, { actionPlan: plan }, { merge: true });
+                    await setDoc(userStateRef, { actionPlan: applicationStrategy }, { merge: true });
 
                     if (tasks) {
                         const newTasks = tasks.map(task => ({
-                            title: task.task,
-                            completed: task.status === 'Completed',
+                            title: task.title,
+                            completed: false, // New tasks always start as not completed
                         }));
                         await updateTasks(newTasks);
                     }
@@ -83,6 +82,12 @@ export default function Stage4Applications() {
     return (
         <StageWrapper icon={ClipboardCheck} title="Your Application Plan" description={`Here is your action plan for ${user?.lockedUniversities.join(', ')}. Complete these tasks to stay on track.`}>
             <div className="space-y-8">
+                {actionPlan?.summary && (
+                     <div>
+                        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2"><Lightbulb className="h-5 w-5 text-primary" /> Application Strategy</h3>
+                        <p className="text-muted-foreground text-sm">{actionPlan.summary}</p>
+                    </div>
+                )}
                 {actionPlan?.timeline && actionPlan.timeline.length > 0 && (
                      <div>
                         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><CalendarDays className="h-5 w-5 text-primary" /> Application Timeline</h3>
@@ -90,8 +95,8 @@ export default function Stage4Applications() {
                             {actionPlan.timeline.map((item, index) => (
                                 <div key={index} className="relative">
                                     <div className="absolute -left-[31px] top-1 h-4 w-4 rounded-full bg-primary ring-4 ring-background" />
-                                    <p className="font-semibold text-foreground">{item.milestone}</p>
-                                    <p className="text-sm text-muted-foreground">{item.deadline}</p>
+                                    <p className="font-semibold text-foreground">{item.phase}: {item.focus}</p>
+                                    <p className="text-sm text-muted-foreground">Est. Duration: {item.duration}</p>
                                 </div>
                             ))}
                         </div>

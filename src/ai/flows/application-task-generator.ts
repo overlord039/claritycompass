@@ -21,19 +21,24 @@ const ApplicationTaskInputSchema = z.object({
 export type ApplicationTaskInput = z.infer<typeof ApplicationTaskInputSchema>;
 
 const ApplicationTaskOutputSchema = z.object({
-  requiredDocuments: z.array(z.string()).describe('A list of required documents for the application.'),
-  timeline: z.array(
-    z.object({
-      milestone: z.string().describe('A key milestone in the application timeline.'),
-      deadline: z.string().describe('The suggested deadline for this milestone (e.g., "Mid-October", "2 weeks from now").'),
-    })
-  ).describe('A high-level timeline for the application process.'),
+  applicationStrategy: z.object({
+    summary: z.string().describe("A concise, strategic summary for the application, addressing the background transition."),
+    requiredDocuments: z.array(z.string()).describe("A realistic list of required application documents."),
+    timeline: z.array(
+      z.object({
+        phase: z.string().describe("The name of the application phase (e.g., 'Phase 1: Foundation')."),
+        focus: z.string().describe("The primary focus of this phase."),
+        duration: z.string().describe("An estimated duration for the phase (e.g., '2-3 Weeks').")
+      })
+    ).describe("A high-level, phased timeline for the application process.")
+  }),
   tasks: z.array(
     z.object({
-      task: z.string().describe('A specific task to complete for the application.'),
-      status: z.enum(['Not started', 'In progress', 'Completed']).describe('The status of the task.'),
+      title: z.string().describe("The specific, actionable task to complete."),
+      type: z.string().describe("The category of the task (e.g., 'SOP', 'Profile Building', 'Research')."),
+      priority: z.enum(['High', 'Medium', 'Low']).describe("The priority level of the task.")
     })
-  ).describe('A list of tasks required to complete the application.'),
+  ).describe("A list of AI-generated tasks to guide the student.")
 });
 export type ApplicationTaskOutput = z.infer<typeof ApplicationTaskOutputSchema>;
 
@@ -47,28 +52,29 @@ const prompt = ai.definePrompt({
   name: 'applicationTaskPrompt',
   input: {schema: ApplicationTaskInputSchema},
   output: {schema: ApplicationTaskOutputSchema},
-  prompt: `You are an AI assistant that helps students with their university applications.
-Based on the student's full profile and their chosen university, generate a personalized action plan. This plan should include a list of required documents, a high-level timeline with milestones, and a specific to-do list.
+  prompt: `You are a senior university counsellor providing calm, realistic, and supportive application guidance.
+Your task is to generate a tailored application plan for a student who has locked in their university choice.
 
-The plan should be tailored to the user's specific situation. For example, if their SOP is already a draft, a task should be to "Finalize SOP draft", not "Start SOP". If their GRE is not started but required for the university, this should be a high-priority task with an early deadline.
+**STUDENT CONTEXT:**
+The student has a non-traditional background for their target field and is applying to a highly competitive university. Your guidance must address this gap and focus on building a strong, coherent narrative.
 
-Chosen University: {{universityName}}
-User Profile: {{{userProfile}}}
+Student Profile: {{{userProfile}}}
+Locked University: {{universityName}}
 
-Generate:
-1.  A list of required documents (e.g., "Official Transcripts", "Letters of Recommendation", "Passport Copy").
-2.  A high-level timeline with key milestones and suggested deadlines (e.g., "Mid-October", "2 weeks from now").
-3.  A list of specific to-do tasks.
+**YOUR TASK:**
+Generate a structured application plan in JSON format.
+The plan must include:
+1.  **applicationStrategy**: An object containing a strategic summary, a list of required documents, and a high-level phased timeline.
+2.  **tasks**: An array of specific, actionable to-do items with types and priorities.
 
-Tasks should include things like:
-- Writing the statement of purpose (consider the current SOP status from the profile)
-- Preparing for and taking the IELTS/GRE (consider current exam status)
-- Filling out the application form for the chosen university
-- Requesting letters of recommendation from professors
-- Arranging for official transcript submission
-
-Return the response in a structured JSON format.
-The status of each generated task should reflect the user's profile (e.g., 'Not started', 'In progress', or 'Completed').
+**RULES:**
+- Your entire response MUST be valid JSON conforming to the output schema.
+- The \`applicationStrategy.summary\` should acknowledge the student's background transition (e.g., Arts to AI) and outline the core strategy to position their application for success.
+- \`requiredDocuments\` should be a realistic list for a competitive international application.
+- The \`timeline\` should be broken into logical phases with a focus and estimated duration (e.g., "2-3 Weeks"). Do NOT use specific dates.
+- \`tasks\` should be practical and achievable. Prioritize tasks that strengthen the student's narrative and address potential weaknesses, such as the Statement of Purpose (SOP) and profile positioning.
+- Set task \`priority\` based on urgency and impact.
+- Keep the tone professional, organized, and supportive.
 `,
 });
 
