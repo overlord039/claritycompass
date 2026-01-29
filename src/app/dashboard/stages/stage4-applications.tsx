@@ -61,7 +61,11 @@ export default function Stage4Applications() {
 
     if (loading || (user && user.lockedUniversities.length > 0 && tasks.length === 0 && !actionPlan)) {
          return (
-            <StageWrapper icon={ClipboardCheck} title="Preparing Your Action Plan" description="You've locked your university choices! The AI is now generating your personalized tasks.">
+            <StageWrapper 
+                icon={ClipboardCheck} 
+                title="Preparing Your Action Plan" 
+                description={`You've locked in ${user?.lockedUniversities.join(', ')}! The AI is now generating your personalized tasks.`}
+            >
                 <div className="space-y-6 text-center py-8">
                     <div className="flex justify-center">
                         <Skeleton className="w-16 h-16 rounded-full" />
