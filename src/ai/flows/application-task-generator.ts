@@ -16,17 +16,7 @@ import {z} from 'genkit';
 
 const ApplicationTaskInputSchema = z.object({
   universityName: z.string().describe('The name of the chosen university.'),
-  degree: z.string().describe('The intended degree of the student.'),
-  major: z.string().describe('The major of the student.'),
-  sopStatus: z
-    .enum(['Not started', 'Draft', 'Ready'])
-    .describe("The status of the student's SOP."),
-  ieltsStatus: z
-    .enum(['Not started', 'In progress', 'Completed'])
-    .describe('The IELTS status of the student.'),
-  greStatus: z
-    .enum(['Not started', 'In progress', 'Completed'])
-    .describe('The GRE status of the student.'),
+  userProfile: z.string().describe('A JSON string representing the complete user profile, including academic background, study goals, and readiness.'),
 });
 export type ApplicationTaskInput = z.infer<typeof ApplicationTaskInputSchema>;
 
@@ -58,29 +48,27 @@ const prompt = ai.definePrompt({
   input: {schema: ApplicationTaskInputSchema},
   output: {schema: ApplicationTaskOutputSchema},
   prompt: `You are an AI assistant that helps students with their university applications.
-Based on the student's profile and chosen university, generate a list of tasks that the student needs to complete, a list of required documents, and a high-level timeline.
+Based on the student's full profile and their chosen university, generate a personalized action plan. This plan should include a list of required documents, a high-level timeline with milestones, and a specific to-do list.
 
-University: {{universityName}}
-Degree: {{degree}}
-Major: {{major}}
-SOP Status: {{sopStatus}}
-IELTS Status: {{ieltsStatus}}
-GRE Status: {{greStatus}}
+The plan should be tailored to the user's specific situation. For example, if their SOP is already a draft, a task should be to "Finalize SOP draft", not "Start SOP". If their GRE is not started but required for the university, this should be a high-priority task with an early deadline.
+
+Chosen University: {{universityName}}
+User Profile: {{{userProfile}}}
 
 Generate:
 1.  A list of required documents (e.g., "Official Transcripts", "Letters of Recommendation", "Passport Copy").
-2.  A high-level timeline with key milestones and suggested deadlines.
+2.  A high-level timeline with key milestones and suggested deadlines (e.g., "Mid-October", "2 weeks from now").
 3.  A list of specific to-do tasks.
 
 Tasks should include things like:
-- Writing the statement of purpose
-- Taking the IELTS/GRE
-- Filling out the application form
-- Requesting letters of recommendation
-- Submitting transcripts
+- Writing the statement of purpose (consider the current SOP status from the profile)
+- Preparing for and taking the IELTS/GRE (consider current exam status)
+- Filling out the application form for the chosen university
+- Requesting letters of recommendation from professors
+- Arranging for official transcript submission
 
 Return the response in a structured JSON format.
-Tasks should have a status of "Not started" by default.
+The status of each generated task should reflect the user's profile (e.g., 'Not started', 'In progress', or 'Completed').
 `,
 });
 

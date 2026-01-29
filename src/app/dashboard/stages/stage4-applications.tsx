@@ -28,18 +28,14 @@ export default function Stage4Applications() {
                 // For simplicity, we'll generate tasks for the first locked university.
                 const result = await generateApplicationTasks({
                     universityName: user.lockedUniversities[0],
-                    degree: user.profile.studyGoal.intendedDegree,
-                    major: user.profile.studyGoal.fieldOfStudy,
-                    sopStatus: user.profile.readiness.sopStatus as any,
-                    ieltsStatus: user.profile.readiness.ieltsStatus as any,
-                    greStatus: user.profile.readiness.greStatus as any,
+                    userProfile: JSON.stringify(user.profile),
                 });
 
                 if (result) {
                     const { tasks, ...plan } = result;
 
                     // Persist the action plan to user's state document
-                    const userStateRef = doc(firestore, 'user_state', user.id);
+                    const userStateRef = doc(firestore, 'user_state', user.uid);
                     await setDoc(userStateRef, { actionPlan: plan }, { merge: true });
 
                     if (tasks) {
