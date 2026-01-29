@@ -121,11 +121,11 @@ export function ProfileAnalysisCard() {
 
     return (
         <Card className="flex flex-col h-full">
-            <CardHeader className="flex flex-row items-start justify-between">
+            <CardHeader className="flex flex-row items-start justify-between p-4">
                 <div>
-                    <CardTitle className="text-lg font-semibold">Profile Analysis</CardTitle>
-                    <CardDescription>
-                        Hey {user?.fullName?.split(' ')[0] || 'there'}, here's an AI-powered summary of your profile.
+                    <CardTitle className="text-base font-semibold">Profile Analysis</CardTitle>
+                    <CardDescription className="text-xs">
+                        Hey {user?.fullName?.split(' ')[0] || 'there'}, here's an AI summary.
                     </CardDescription>
                 </div>
                 <Badge variant={profileStatus.variant}>
@@ -134,44 +134,44 @@ export function ProfileAnalysisCard() {
             </CardHeader>
             <CardContent className="flex-grow flex flex-col md:flex-row items-center gap-4 p-4">
                 <div className="relative flex-shrink-0">
-                    <CircularProgress value={profileScore} className={cn("h-28 w-28", profileStatus.colorClass)} strokeWidth={8}/>
+                    <CircularProgress value={profileScore} className={cn("h-24 w-24", profileStatus.colorClass)} strokeWidth={8}/>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-2xl font-bold text-foreground">{profileScore}</span>
+                        <span className="text-xl font-bold text-foreground">{profileScore}</span>
                         <span className="text-xs text-muted-foreground">Strength</span>
                     </div>
                 </div>
 
-                <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50">
-                        <div className="p-2 bg-accent rounded-md">
-                            <GraduationCap className="h-5 w-5 text-accent-foreground" />
+                <div className="w-full grid grid-cols-2 gap-2">
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50">
+                        <div className="p-1.5 bg-accent rounded-md">
+                            <GraduationCap className="h-4 w-4 text-accent-foreground" />
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">Target Degree</p>
-                            <p className="font-semibold text-foreground text-sm truncate">{user?.profile?.studyGoal.intendedDegree || 'N/A'}</p>
+                            <p className="font-semibold text-foreground text-xs truncate">{user?.profile?.studyGoal.intendedDegree || 'N/A'}</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50">
-                         <div className="p-2 bg-accent rounded-md">
-                            <Trophy className="h-5 w-5 text-accent-foreground" />
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50">
+                         <div className="p-1.5 bg-accent rounded-md">
+                            <Trophy className="h-4 w-4 text-accent-foreground" />
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">GPA</p>
                             <p className="font-semibold text-foreground text-sm">{user?.profile?.academic.gpa || 'N/A'}</p>
                         </div>
                     </div>
-                     <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50">
-                         <div className="p-2 bg-accent rounded-md">
-                            <Wallet className="h-5 w-5 text-accent-foreground" />
+                     <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50">
+                         <div className="p-1.5 bg-accent rounded-md">
+                            <Wallet className="h-4 w-4 text-accent-foreground" />
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">Budget / Year</p>
-                            <p className="font-semibold text-foreground text-sm truncate">{user?.profile?.budget.budgetRangePerYear || 'N/A'}</p>
+                            <p className="font-semibold text-foreground text-xs truncate">{user?.profile?.budget.budgetRangePerYear || 'N/A'}</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50">
-                         <div className="p-2 bg-accent rounded-md">
-                            <BookOpen className="h-5 w-5 text-accent-foreground" />
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50">
+                         <div className="p-1.5 bg-accent rounded-md">
+                            <BookOpen className="h-4 w-4 text-accent-foreground" />
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">Exams</p>
@@ -184,9 +184,9 @@ export function ProfileAnalysisCard() {
                     </div>
                 </div>
             </CardContent>
-            <CardFooter className="pt-0">
-                <Button variant="outline" size="sm" className="w-full md:w-auto ml-auto" asChild>
-                    <Link href="/onboarding">Edit Profile & Readiness →</Link>
+            <CardFooter className="p-4 pt-0">
+                <Button variant="outline" size="sm" className="w-full md:w-auto ml-auto text-xs" asChild>
+                    <Link href="/onboarding">Edit Profile →</Link>
                 </Button>
             </CardFooter>
         </Card>

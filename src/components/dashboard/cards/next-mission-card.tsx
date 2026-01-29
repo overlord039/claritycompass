@@ -40,13 +40,13 @@ export function NextMissionCard() {
     if (loading || !user) {
         return (
             <Card className="h-full">
-                <CardHeader>
-                    <Skeleton className="h-6 w-3/4" />
+                <CardHeader className="p-4">
+                    <Skeleton className="h-5 w-3/4" />
                 </CardHeader>
-                <CardContent className="flex flex-col items-center justify-center text-center gap-4 flex-grow">
+                <CardContent className="flex flex-col items-center justify-center text-center gap-3 p-4 flex-grow">
                     <Skeleton className="h-4 w-full" />
                     <Skeleton className="h-4 w-2/3" />
-                     <Skeleton className="h-10 w-full mt-4" />
+                     <Skeleton className="h-9 w-full mt-2" />
                 </CardContent>
             </Card>
         );
@@ -54,17 +54,17 @@ export function NextMissionCard() {
     
     return (
         <Card className="flex flex-col items-center justify-center text-center h-full">
-            <CardHeader>
-                <CardTitle className="text-lg font-semibold">
+            <CardHeader className="p-4">
+                <CardTitle className="text-base font-semibold">
                     {mission ? `Stage ${user.currentStage}: ${mission.name}` : '✨ Next Mission'}
                 </CardTitle>
             </CardHeader>
-            <CardContent className="flex-grow flex flex-col items-center justify-center gap-3">
-                <p className="text-muted-foreground text-sm px-2">
+            <CardContent className="flex-grow flex flex-col items-center justify-center gap-2 p-4">
+                <p className="text-muted-foreground text-xs px-2">
                     {guidance?.guidance || "Loading your next step..."}
                 </p>
                 {mission ? (
-                     <Button size="default" className="w-full mt-2" asChild>
+                     <Button size="sm" className="w-full mt-2" asChild>
                         <Link href={mission.href}>{mission.text}</Link>
                      </Button>
                 ) : null}
