@@ -35,8 +35,11 @@ export default function Stage4Applications() {
                     const { tasks, applicationStrategy } = result;
 
                     // Persist the action plan to user's state document
-                    const userStateRef = doc(firestore, 'user_state', user.uid);
-                    await setDoc(userStateRef, { actionPlan: applicationStrategy }, { merge: true });
+                    if (firestore && user.uid) {
+                        const userStateRef = doc(firestore, 'user_state', user.uid);
+                        await setDoc(userStateRef, { actionPlan: applicationStrategy }, { merge: true });
+                    }
+
 
                     if (tasks) {
                         const newTasks = tasks.map(task => ({
