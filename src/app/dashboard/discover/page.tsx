@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/providers/auth-provider';
-import type { University } from '@/lib/types';
 import { universities as allUniversities } from '@/lib/data';
 import { StageWrapper } from '@/components/dashboard/stages/stage-wrapper';
 import { Button } from '@/components/ui/button';
