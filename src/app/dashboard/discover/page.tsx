@@ -202,13 +202,13 @@ export default function DiscoverPage() {
                     acceptanceLikelihood = 'Medium';
                 }
                 
-                let category: 'Dream' | 'Target' | 'Safe' | null = null;
-                if (uni.acceptance_difficulty === 'High' && (academicFit === 'Acceptable' || academicFit === 'Borderline')) {
-                    category = 'Dream';
-                } else if (uni.acceptance_difficulty === 'Medium' && academicFit === 'Acceptable') {
-                    category = 'Target';
-                } else if (uni.acceptance_difficulty === 'Low' && academicFit === 'Strong') {
+                let category: 'Dream' | 'Target' | 'Safe';
+                if (acceptanceLikelihood === 'High') {
                     category = 'Safe';
+                } else if (acceptanceLikelihood === 'Medium') {
+                    category = 'Target';
+                } else {
+                    category = 'Dream';
                 }
                 
                 if (category) {
