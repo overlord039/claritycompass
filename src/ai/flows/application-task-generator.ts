@@ -20,7 +20,7 @@ const ApplicationTaskInputSchema = z.object({
   major: z.string().describe('The major of the student.'),
   sopStatus: z
     .enum(['Not started', 'Draft', 'Ready'])
-    .describe('The status of the student\'s SOP.'),
+    .describe("The status of the student's SOP."),
   ieltsStatus: z
     .enum(['Not started', 'In progress', 'Completed'])
     .describe('The IELTS status of the student.'),
@@ -31,6 +31,13 @@ const ApplicationTaskInputSchema = z.object({
 export type ApplicationTaskInput = z.infer<typeof ApplicationTaskInputSchema>;
 
 const ApplicationTaskOutputSchema = z.object({
+  requiredDocuments: z.array(z.string()).describe('A list of required documents for the application.'),
+  timeline: z.array(
+    z.object({
+      milestone: z.string().describe('A key milestone in the application timeline.'),
+      deadline: z.string().describe('The suggested deadline for this milestone (e.g., "Mid-October", "2 weeks from now").'),
+    })
+  ).describe('A high-level timeline for the application process.'),
   tasks: z.array(
     z.object({
       task: z.string().describe('A specific task to complete for the application.'),
@@ -51,7 +58,7 @@ const prompt = ai.definePrompt({
   input: {schema: ApplicationTaskInputSchema},
   output: {schema: ApplicationTaskOutputSchema},
   prompt: `You are an AI assistant that helps students with their university applications.
-Based on the student's profile and chosen university, generate a list of tasks that the student needs to complete.
+Based on the student's profile and chosen university, generate a list of tasks that the student needs to complete, a list of required documents, and a high-level timeline.
 
 University: {{universityName}}
 Degree: {{degree}}
@@ -60,6 +67,11 @@ SOP Status: {{sopStatus}}
 IELTS Status: {{ieltsStatus}}
 GRE Status: {{greStatus}}
 
+Generate:
+1.  A list of required documents (e.g., "Official Transcripts", "Letters of Recommendation", "Passport Copy").
+2.  A high-level timeline with key milestones and suggested deadlines.
+3.  A list of specific to-do tasks.
+
 Tasks should include things like:
 - Writing the statement of purpose
 - Taking the IELTS/GRE
@@ -67,7 +79,7 @@ Tasks should include things like:
 - Requesting letters of recommendation
 - Submitting transcripts
 
-Return the tasks in a JSON format.
+Return the response in a structured JSON format.
 Tasks should have a status of "Not started" by default.
 `,
 });

@@ -3,18 +3,22 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/providers/auth-provider';
 import { generateApplicationTasks } from '@/lib/actions';
+import type { ApplicationTaskOutput } from '@/ai/flows/application-task-generator';
 import { StageWrapper } from './stage-wrapper';
 import { Button } from '@/components/ui/button';
-import { ClipboardCheck, RotateCcw } from 'lucide-react';
+import { ClipboardCheck, RotateCcw, CalendarDays, FileText, ListChecks } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 
+type ActionPlan = Omit<ApplicationTaskOutput, 'tasks'>;
+
 export default function Stage4Applications() {
     const { user, updateTasks, unlockUniversities, updateTaskStatus, applicationTasks } = useAuth();
     const [loading, setLoading] = useState(false);
+    const [actionPlan, setActionPlan] = useState<ActionPlan | null>(null);
 
     useEffect(() => {
         const generateTasks = async () => {
@@ -30,12 +34,16 @@ export default function Stage4Applications() {
                     greStatus: user.profile.readiness.greStatus as any,
                 });
 
-                if (result && result.tasks) {
-                    const newTasks = result.tasks.map(task => ({
-                        title: task.task,
-                        completed: task.status === 'Completed',
-                    }));
-                    await updateTasks(newTasks);
+                if (result) {
+                    if (result.tasks) {
+                        const newTasks = result.tasks.map(task => ({
+                            title: task.task,
+                            completed: task.status === 'Completed',
+                        }));
+                        await updateTasks(newTasks);
+                    }
+                    const { tasks, ...plan } = result;
+                    setActionPlan(plan);
                 }
                 setLoading(false);
             }
@@ -49,7 +57,7 @@ export default function Stage4Applications() {
     const progress = tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0;
 
 
-    if (loading || (user && user.lockedUniversities.length > 0 && tasks.length === 0)) {
+    if (loading || (user && user.lockedUniversities.length > 0 && tasks.length === 0 && !actionPlan)) {
          return (
             <StageWrapper icon={ClipboardCheck} title="Preparing Your Action Plan" description="You've locked your university choices! The AI is now generating your personalized tasks.">
                 <div className="space-y-6 text-center py-8">
@@ -59,7 +67,7 @@ export default function Stage4Applications() {
                     <Skeleton className="h-6 w-1/2 mx-auto" />
                     <Skeleton className="h-4 w-3/4 mx-auto" />
                     <div className="pt-4">
-                        <Skeleton className="h-24 w-full" />
+                        <Skeleton className="h-40 w-full" />
                     </div>
                 </div>
             </StageWrapper>
@@ -68,29 +76,57 @@ export default function Stage4Applications() {
 
     return (
         <StageWrapper icon={ClipboardCheck} title="Your Application Plan" description={`Here is your action plan for ${user?.lockedUniversities.join(', ')}. Complete these tasks to stay on track.`}>
-            <div className="space-y-6">
-                {tasks.length > 0 ? (
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-4">
-                            <Progress value={progress} className="h-2" />
-                            <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">{completedTasks} / {tasks.length}</span>
-                        </div>
-                        <div className="space-y-3 rounded-lg border bg-background/30 p-4 max-h-96 overflow-y-auto">
-                            {tasks.map(task => (
-                                <div key={task.id} className="flex items-center space-x-3 p-3 rounded-md bg-background/50 border hover:bg-accent/50 transition-colors">
-                                    <Checkbox 
-                                        id={`stage-task-${task.id}`} 
-                                        checked={task.completed}
-                                        onCheckedChange={(checked) => updateTaskStatus(task.id, !!checked)}
-                                    />
-                                    <Label 
-                                        htmlFor={`stage-task-${task.id}`} 
-                                        className={`flex-grow cursor-pointer ${task.completed ? 'text-muted-foreground line-through' : 'text-foreground'}`}
-                                    >
-                                        {task.title}
-                                    </Label>
+            <div className="space-y-8">
+                {actionPlan?.timeline && actionPlan.timeline.length > 0 && (
+                     <div>
+                        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><CalendarDays className="h-5 w-5 text-primary" /> Application Timeline</h3>
+                        <div className="space-y-4 border-l-2 border-primary/20 border-dashed pl-6 ml-2">
+                            {actionPlan.timeline.map((item, index) => (
+                                <div key={index} className="relative">
+                                    <div className="absolute -left-[31px] top-1 h-4 w-4 rounded-full bg-primary ring-4 ring-background" />
+                                    <p className="font-semibold text-foreground">{item.milestone}</p>
+                                    <p className="text-sm text-muted-foreground">{item.deadline}</p>
                                 </div>
                             ))}
+                        </div>
+                    </div>
+                )}
+                {actionPlan?.requiredDocuments && actionPlan.requiredDocuments.length > 0 && (
+                    <div>
+                        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2"><FileText className="h-5 w-5 text-primary" /> Required Documents</h3>
+                        <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 list-disc list-inside text-muted-foreground pl-2">
+                            {actionPlan.requiredDocuments.map((doc, index) => (
+                                <li key={index}>{doc}</li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
+                {tasks.length > 0 ? (
+                     <div>
+                        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2"><ListChecks className="h-5 w-5 text-primary" /> Your To-Do List</h3>
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-4">
+                                <Progress value={progress} className="h-2" />
+                                <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">{completedTasks} / {tasks.length}</span>
+                            </div>
+                            <div className="space-y-3 rounded-lg border bg-background/30 p-4 max-h-96 overflow-y-auto">
+                                {tasks.map(task => (
+                                    <div key={task.id} className="flex items-center space-x-3 p-3 rounded-md bg-background/50 border hover:bg-accent/50 transition-colors">
+                                        <Checkbox 
+                                            id={`stage-task-${task.id}`} 
+                                            checked={task.completed}
+                                            onCheckedChange={(checked) => updateTaskStatus(task.id, !!checked)}
+                                        />
+                                        <Label 
+                                            htmlFor={`stage-task-${task.id}`} 
+                                            className={`flex-grow cursor-pointer ${task.completed ? 'text-muted-foreground line-through' : 'text-foreground'}`}
+                                        >
+                                            {task.title}
+                                        </Label>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 ) : (
