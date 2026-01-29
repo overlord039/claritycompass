@@ -28,6 +28,7 @@ export default function Stage4Applications() {
                 const result = await generateApplicationTasks({
                     universityName: user.lockedUniversities[0],
                     userProfile: JSON.stringify(user.profile),
+                    recommendations: user.state?.recommendations || 'No specific recommendations provided.',
                 });
 
                 if (result) {
@@ -70,7 +71,9 @@ export default function Stage4Applications() {
                         <Skeleton className="w-16 h-16 rounded-full" />
                     </div>
                     <Skeleton className="h-6 w-1/2 mx-auto" />
-                    <Skeleton className="h-4 w-3/4 mx-auto" />
+                    {user?.state?.recommendations && (
+                        <p className="text-muted-foreground text-sm whitespace-pre-line px-4">{user.state.recommendations}</p>
+                    )}
                     <div className="pt-4">
                         <Skeleton className="h-40 w-full" />
                     </div>

@@ -17,6 +17,7 @@ import {z} from 'genkit';
 const ApplicationTaskInputSchema = z.object({
   universityName: z.string().describe('The name of the chosen university.'),
   userProfile: z.string().describe('A JSON string representing the complete user profile, including academic background, study goals, and readiness.'),
+  recommendations: z.string().describe('The AI-generated recommendations for profile improvement.'),
 });
 export type ApplicationTaskInput = z.infer<typeof ApplicationTaskInputSchema>;
 
@@ -61,11 +62,15 @@ The student has a non-traditional background for their target field and is apply
 Student Profile: {{{userProfile}}}
 Locked University: {{universityName}}
 
+**AI RECOMMENDATIONS TO ACTION:**
+Based on the following prior recommendations, generate concrete tasks to help the student execute on them.
+{{{recommendations}}}
+
 **YOUR TASK:**
 Generate a structured application plan in JSON format.
 The plan must include:
 1.  **applicationStrategy**: An object containing a strategic summary, a list of required documents, and a high-level phased timeline.
-2.  **tasks**: An array of specific, actionable to-do items with types and priorities.
+2.  **tasks**: An array of specific, actionable to-do items with types and priorities, derived directly from the AI recommendations and student context.
 
 **RULES:**
 - Your entire response MUST be valid JSON conforming to the output schema.
