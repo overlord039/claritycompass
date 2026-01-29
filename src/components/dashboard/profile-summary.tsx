@@ -2,9 +2,11 @@
 
 import { useAuth } from "@/providers/auth-provider";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Card, CardContent } from "@/components/ui/card";
-import { User, Briefcase, MapPin, DollarSign, Target, GraduationCap } from "lucide-react";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { User, Briefcase, MapPin, DollarSign, Target, GraduationCap, Edit } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export function ProfileSummary() {
     const { user } = useAuth();
@@ -56,6 +58,14 @@ export function ProfileSummary() {
                             ))}
                         </div>
                     </CardContent>
+                    <CardFooter className="justify-end">
+                        <Button asChild variant="outline" size="sm">
+                            <Link href="/onboarding">
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit Profile
+                            </Link>
+                        </Button>
+                    </CardFooter>
                 </Card>
             </AccordionContent>
         </AccordionItem>
