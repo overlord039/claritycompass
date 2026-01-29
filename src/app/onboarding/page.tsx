@@ -48,7 +48,7 @@ const profileSchema = z.object({
   }),
   studyGoal: z.object({
     intendedDegree: z.string().min(1, "Please select your intended degree."),
-    fieldOfStudy: z.string().min(1, "Please enter your field of study."),
+    fieldOfStudy: z.string().min(1, "Please select your field of study."),
     targetIntakeYear: z.string().min(4, "Please select a year."),
     preferredCountries: z.string().min(2, "Please enter at least one country."),
   }),
@@ -96,6 +96,20 @@ const degreeOptions = [
     { value: 'Integrated Degree', label: 'Integrated Degree' },
 ];
 const degreeOptionValues = degreeOptions.map(o => o.value);
+
+const fieldOfStudyOptions = [
+    "Artificial Intelligence",
+    "Business Analytics",
+    "Computer Science",
+    "Data Science",
+    "Engineering",
+    "IT",
+    "Management",
+    "MBBS",
+    "Research",
+    "Business",
+    "Analytics",
+];
 
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -287,9 +301,30 @@ export default function OnboardingPage() {
                                 </SelectContent>
                             </Select><FormMessage /></FormItem>
                         )}/>
-                        <FormField name="studyGoal.fieldOfStudy" control={form.control} render={({ field }) => (
-                            <FormItem><FormLabel>Field of Study</FormLabel><FormControl><Input placeholder="e.g., Artificial Intelligence, Data Science" {...field} /></FormControl><FormMessage /></FormItem>
-                        )}/>
+                        <FormField
+                            name="studyGoal.fieldOfStudy"
+                            control={form.control}
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Field of Study</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select your field of study" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {fieldOfStudyOptions.map((option) => (
+                                        <SelectItem key={option} value={option}>
+                                        {option}
+                                        </SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                         <FormField name="studyGoal.targetIntakeYear" control={form.control} render={({ field }) => (
                             <FormItem><FormLabel>Target Intake Year</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
