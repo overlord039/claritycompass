@@ -67,7 +67,7 @@ export default function Stage4Applications() {
             <StageWrapper 
                 icon={ClipboardCheck} 
                 title="Preparing Your Action Plan" 
-                description={`The AI is now generating your personalized tasks based on your final university choices.`}
+                description={`You've locked your university choices! The AI is now generating your personalized strategy and tasks.`}
             >
                 <div className="space-y-8 py-4">
                     {user?.lockedUniversities && user.lockedUniversities.length > 0 && (
@@ -83,20 +83,20 @@ export default function Stage4Applications() {
                         </div>
                     )}
 
-                    <div className="text-center">
-                        <div className="flex justify-center mb-6">
-                            <Skeleton className="w-16 h-16 rounded-full" />
+                    {user?.state?.recommendations && (
+                        <div>
+                            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2"><Lightbulb className="h-5 w-5 text-primary" /> Key Recommendations</h3>
+                            <p className="text-muted-foreground text-sm whitespace-pre-line">{user.state.recommendations}</p>
                         </div>
-
-                        {user?.state?.recommendations && (
-                            <div className='mb-6'>
-                                <h3 className="text-lg font-semibold mb-3 flex items-center justify-center gap-2"><Lightbulb className="h-5 w-5 text-primary" /> Key Recommendations</h3>
-                                <p className="text-muted-foreground text-sm whitespace-pre-line px-4">{user.state.recommendations}</p>
-                            </div>
-                        )}
-                        
-                        <p className='text-muted-foreground text-sm mb-2'>Generating timeline, documents, and tasks...</p>
-                        <Skeleton className="h-40 w-full" />
+                    )}
+                    
+                    <div className="pt-4 border-t border-dashed">
+                        <p className='text-center text-muted-foreground text-sm mb-4'>Generating your detailed timeline, document list, and to-do items...</p>
+                        <div className="space-y-4">
+                            <Skeleton className="h-20 w-full" />
+                            <Skeleton className="h-12 w-full" />
+                            <Skeleton className="h-32 w-full" />
+                        </div>
                     </div>
                 </div>
             </StageWrapper>
