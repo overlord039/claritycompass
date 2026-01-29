@@ -86,7 +86,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
         </div>
       )}
-      <main className="flex-grow container mx-auto px-4 md:px-6 py-6 overflow-hidden">
+      <main className={cn(
+        "flex-grow container mx-auto px-4 md:px-6 py-6",
+        pathname === '/dashboard' && "overflow-hidden"
+      )}>
         {children}
       </main>
     </div>
