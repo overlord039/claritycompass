@@ -59,7 +59,7 @@ export default function Stage4Applications() {
     const progress = tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0;
 
 
-    if (loading || (user && user.lockedUniversities.length > 0 && tasks.length === 0 && !actionPlan)) {
+    if (loading || (user && user.lockedUniversities.length > 0 && !actionPlan)) {
          return (
             <StageWrapper 
                 icon={ClipboardCheck} 
