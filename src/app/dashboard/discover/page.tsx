@@ -1,39 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { universityDiscoveryEngine } from '@/lib/actions';
 import { useAuth } from '@/providers/auth-provider';
-import type { University, UserProfile } from '@/lib/types';
-import type { UniversityDiscoveryEngineInput } from '@/ai/flows/university-discovery-engine';
+import type { University } from '@/lib/types';
 import { universities as allUniversities } from '@/lib/data';
 import { StageWrapper } from '@/components/dashboard/stages/stage-wrapper';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, ArrowRight, Search, ThumbsUp } from 'lucide-react';
-
-type CategorizedUniversities = {
-  dream: University[];
-  target: University[];
-  safe: University[];
-};
-
-const transformProfileForDiscovery = (profile: UserProfile): Omit<UniversityDiscoveryEngineInput, 'universitiesData'> => {
-    return {
-        educationLevel: profile.academic.educationLevel,
-        degree: profile.academic.degree,
-        fieldOfStudy: profile.studyGoal.fieldOfStudy,
-        targetIntakeYear: profile.studyGoal.targetIntakeYear,
-        preferredCountries: profile.studyGoal.preferredCountries,
-        budgetRangePerYear: profile.budget.budgetRangePerYear,
-        ieltsStatus: profile.readiness.ieltsStatus,
-        greStatus: profile.readiness.greStatus,
-        sopStatus: profile.readiness.sopStatus,
-    };
-}
+import { Input } from '@/components/ui/input';
 
 function UniversityCard({ university, onShortlist, isShortlisted }: { university: University; onShortlist: () => void; isShortlisted: boolean }) {
     return (
@@ -72,31 +50,21 @@ function UniversityCard({ university, onShortlist, isShortlisted }: { university
 }
 
 export default function DiscoverPage() {
-  const { user, setStage, shortlistUniversity, shortlistedUniversities } = useAuth();
-  const [categorized, setCategorized] = useState<CategorizedUniversities | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { setStage, shortlistUniversity, shortlistedUniversities } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    const discover = async () => {
-      if (!user?.profile) return;
-      setLoading(true);
-      const result = await universityDiscoveryEngine({
-        ...transformProfileForDiscovery(user.profile),
-        universitiesData: JSON.stringify(allUniversities),
-      });
+  const filteredUniversities = useMemo(() => {
+    if (!searchQuery) {
+        return allUniversities;
+    }
+    const lowercasedQuery = searchQuery.toLowerCase();
+    return allUniversities.filter(uni => 
+        uni.name.toLowerCase().includes(lowercasedQuery) ||
+        uni.country.toLowerCase().includes(lowercasedQuery) ||
+        uni.fields.some(field => field.toLowerCase().includes(lowercasedQuery))
+    );
+  }, [searchQuery, allUniversities]);
 
-      if (result) {
-        setCategorized({
-          dream: allUniversities.filter(u => result.dreamUniversities.includes(u.name)),
-          target: allUniversities.filter(u => result.targetUniversities.includes(u.name)),
-          safe: allUniversities.filter(u => result.safeUniversities.includes(u.name)),
-        });
-      }
-      setLoading(false);
-    };
-
-    discover();
-  }, [user?.profile]);
 
   const canProceed = shortlistedUniversities.length >= 1;
 
@@ -106,45 +74,37 @@ export default function DiscoverPage() {
     }
   }
 
-  if (loading) {
-    return (
-        <StageWrapper icon={Search} title="Discovering Universities" description="Our AI is analyzing your profile to find the best universities for you.">
-             <div className="space-y-8">
-                {['Dream', 'Target', 'Safe'].map(category => (
-                    <div key={category}>
-                        <h3 className="text-xl font-bold mb-4">{category} Universities</h3>
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-96 rounded-lg" />)}
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </StageWrapper>
-    );
-  }
-
   return (
-    <StageWrapper icon={Search} title="Discovering Universities" description="Here are universities categorized by our AI based on your profile. Shortlist at least one to proceed.">
-      <div className="space-y-12">
-        {categorized && (
-            <>
-              {Object.entries(categorized).map(([category, unis]) => (
-                unis.length > 0 && <div key={category}>
-                  <h3 className="text-2xl font-bold mb-6 capitalize font-headline">{category} Universities</h3>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {unis.map(uni => (
-                      <UniversityCard 
-                        key={uni.id} 
-                        university={uni} 
-                        onShortlist={() => shortlistUniversity(uni.name)}
-                        isShortlisted={shortlistedUniversities.includes(uni.name)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </>
+    <StageWrapper icon={Search} title="Explore Universities" description="Search for universities and shortlist your favorites. You need to shortlist at least one to proceed.">
+      <div className="space-y-8">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input 
+            placeholder="Search by name, country, or field of study..."
+            className="pl-10 w-full md:w-1/2 lg:w-1/3"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        
+        {filteredUniversities.length > 0 ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredUniversities.map(uni => (
+              <UniversityCard 
+                key={uni.id} 
+                university={uni} 
+                onShortlist={() => shortlistUniversity(uni.name)}
+                isShortlisted={shortlistedUniversities.includes(uni.name)}
+              />
+            ))}
+          </div>
+        ) : (
+            <div className="text-center py-16">
+                <p className="text-lg font-semibold">No universities found</p>
+                <p className="text-muted-foreground">Try adjusting your search query.</p>
+            </div>
         )}
+
         <div className="pt-6 flex flex-col items-center gap-4">
             <p className="text-muted-foreground">{canProceed ? "You're ready for the next step!" : "Shortlist at least 1 university to continue."}</p>
             <Button size="lg" disabled={!canProceed} onClick={handleProceed} asChild>
