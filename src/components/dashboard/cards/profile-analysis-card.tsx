@@ -105,16 +105,17 @@ const calculateProfileScore = (profile: UserProfile | null): number => {
 };
 
 
+const getProfileStatus = (score: number) => {
+    if (score > 70) return { text: "Strong", variant: "default" as const, colorClass: "text-green-500" };
+    if (score > 40) return { text: "Moderate", variant: "secondary" as const, colorClass: "text-amber-500" };
+    return { text: "Needs Work", variant: "destructive" as const, colorClass: "text-red-500" };
+}
+
+
 export function ProfileAnalysisCard() {
     const { user } = useAuth();
     
     const profileScore = useMemo(() => calculateProfileScore(user?.profile || null), [user?.profile]);
-
-    const getProfileStatus = (score: number) => {
-        if (score > 70) return { text: "Strong", variant: "default" as const, colorClass: "text-green-500" };
-        if (score > 40) return { text: "Moderate", variant: "secondary" as const, colorClass: "text-amber-500" };
-        return { text: "Needs Work", variant: "destructive" as const, colorClass: "text-red-500" };
-    }
 
     const profileStatus = getProfileStatus(profileScore);
 
@@ -122,7 +123,7 @@ export function ProfileAnalysisCard() {
         <Card className="flex flex-col h-full">
             <CardHeader className="flex flex-row items-start justify-between">
                 <div>
-                    <CardTitle className="text-xl font-semibold">Profile Analysis</CardTitle>
+                    <CardTitle className="text-lg font-semibold">Profile Analysis</CardTitle>
                     <CardDescription>
                         Hey {user?.fullName?.split(' ')[0] || 'there'}, here's an AI-powered summary of your profile.
                     </CardDescription>
@@ -131,49 +132,49 @@ export function ProfileAnalysisCard() {
                     {profileStatus.text}
                 </Badge>
             </CardHeader>
-            <CardContent className="flex-grow flex flex-col md:flex-row items-center gap-6 p-6">
+            <CardContent className="flex-grow flex flex-col md:flex-row items-center gap-4 p-4">
                 <div className="relative flex-shrink-0">
-                    <CircularProgress value={profileScore} className={cn("h-32 w-32", profileStatus.colorClass)} strokeWidth={8}/>
+                    <CircularProgress value={profileScore} className={cn("h-28 w-28", profileStatus.colorClass)} strokeWidth={8}/>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-3xl font-bold text-foreground">{profileScore}</span>
-                        <span className="text-sm text-muted-foreground">Strength</span>
+                        <span className="text-2xl font-bold text-foreground">{profileScore}</span>
+                        <span className="text-xs text-muted-foreground">Strength</span>
                     </div>
                 </div>
 
-                <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="flex items-center gap-4 p-4 rounded-lg bg-background/50">
-                        <div className="p-3 bg-accent rounded-md">
-                            <GraduationCap className="h-6 w-6 text-accent-foreground" />
+                <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50">
+                        <div className="p-2 bg-accent rounded-md">
+                            <GraduationCap className="h-5 w-5 text-accent-foreground" />
                         </div>
                         <div>
-                            <p className="text-sm text-muted-foreground">Target Degree</p>
-                            <p className="font-semibold text-foreground truncate">{user?.profile?.studyGoal.intendedDegree || 'N/A'}</p>
+                            <p className="text-xs text-muted-foreground">Target Degree</p>
+                            <p className="font-semibold text-foreground text-sm truncate">{user?.profile?.studyGoal.intendedDegree || 'N/A'}</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-4 p-4 rounded-lg bg-background/50">
-                         <div className="p-3 bg-accent rounded-md">
-                            <Trophy className="h-6 w-6 text-accent-foreground" />
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50">
+                         <div className="p-2 bg-accent rounded-md">
+                            <Trophy className="h-5 w-5 text-accent-foreground" />
                         </div>
                         <div>
-                            <p className="text-sm text-muted-foreground">GPA</p>
-                            <p className="font-semibold text-foreground">{user?.profile?.academic.gpa || 'N/A'}</p>
+                            <p className="text-xs text-muted-foreground">GPA</p>
+                            <p className="font-semibold text-foreground text-sm">{user?.profile?.academic.gpa || 'N/A'}</p>
                         </div>
                     </div>
-                     <div className="flex items-center gap-4 p-4 rounded-lg bg-background/50">
-                         <div className="p-3 bg-accent rounded-md">
-                            <Wallet className="h-6 w-6 text-accent-foreground" />
+                     <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50">
+                         <div className="p-2 bg-accent rounded-md">
+                            <Wallet className="h-5 w-5 text-accent-foreground" />
                         </div>
                         <div>
-                            <p className="text-sm text-muted-foreground">Budget / Year</p>
-                            <p className="font-semibold text-foreground truncate">{user?.profile?.budget.budgetRangePerYear || 'N/A'}</p>
+                            <p className="text-xs text-muted-foreground">Budget / Year</p>
+                            <p className="font-semibold text-foreground text-sm truncate">{user?.profile?.budget.budgetRangePerYear || 'N/A'}</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-4 p-4 rounded-lg bg-background/50">
-                         <div className="p-3 bg-accent rounded-md">
-                            <BookOpen className="h-6 w-6 text-accent-foreground" />
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50">
+                         <div className="p-2 bg-accent rounded-md">
+                            <BookOpen className="h-5 w-5 text-accent-foreground" />
                         </div>
                         <div>
-                            <p className="text-sm text-muted-foreground">Exams</p>
+                            <p className="text-xs text-muted-foreground">Exams</p>
                             <p className="font-semibold text-foreground text-xs">
                                 IELTS: {user?.profile?.readiness.ieltsStatus || 'N/A'}
                                 <br/>
@@ -183,8 +184,8 @@ export function ProfileAnalysisCard() {
                     </div>
                 </div>
             </CardContent>
-            <CardFooter>
-                <Button variant="outline" className="w-full md:w-auto ml-auto" asChild>
+            <CardFooter className="pt-0">
+                <Button variant="outline" size="sm" className="w-full md:w-auto ml-auto" asChild>
                     <Link href="/onboarding">Edit Profile & Readiness →</Link>
                 </Button>
             </CardFooter>

@@ -14,44 +14,36 @@ export default function DashboardHomePage() {
 
     if (loading || !user) {
         return (
-             <div className="h-full flex flex-col gap-6">
-                <div className="flex flex-row gap-6">
-                    <div className="w-[45%]"><Skeleton className="h-full" /></div>
-                    <div className="w-[30%]"><Skeleton className="h-full" /></div>
-                    <div className="w-[25%] flex flex-col gap-6"><Skeleton className="h-32" /><Skeleton className="flex-grow" /></div>
+             <div className="grid grid-cols-4 grid-rows-2 gap-6 h-full">
+                <Skeleton className="col-span-2 row-span-1" />
+                <Skeleton className="col-span-1 row-span-1" />
+                <div className="col-span-1 row-span-1 flex flex-col gap-6">
+                    <Skeleton className="flex-grow" />
+                    <Skeleton className="flex-grow" />
                 </div>
-                <div className="flex flex-row gap-6 flex-grow">
-                    <div className="w-[75%]"><Skeleton className="h-full" /></div>
-                    <div className="w-[25%]"><Skeleton className="h-full" /></div>
-                </div>
+                <Skeleton className="col-span-3 row-span-1" />
+                <Skeleton className="col-span-1 row-span-1" />
             </div>
         );
     }
 
     return (
-        <div className="h-full flex flex-col gap-6">
-            {/* Top row */}
-            <div className="flex flex-row gap-6">
-                <div className="w-[45%]">
-                     <ProfileAnalysisCard />
-                </div>
-                <div className="w-[30%]">
-                    <NextMissionCard />
-                </div>
-                <div className="w-[25%] flex flex-col gap-6">
-                    <SessionsCard />
-                    <JournalCard />
-                </div>
+        <div className="grid grid-cols-4 grid-rows-2 gap-6 h-full">
+            <div className="col-span-2 row-span-1">
+                <ProfileAnalysisCard />
             </div>
-
-            {/* Bottom row */}
-            <div className="flex flex-row gap-6 flex-grow min-h-0">
-                <div className="w-[75%] flex flex-col">
-                    <ShortlistedUniversitiesCard />
-                </div>
-                <div className="w-[25%]">
-                    <AiGuidance />
-                </div>
+            <div className="col-span-1 row-span-1">
+                <NextMissionCard />
+            </div>
+            <div className="col-span-1 row-span-1 flex flex-col gap-6">
+                <SessionsCard />
+                <JournalCard />
+            </div>
+            <div className="col-span-3 row-span-1">
+                <ShortlistedUniversitiesCard />
+            </div>
+            <div className="col-span-1 row-span-1">
+                <AiGuidance />
             </div>
         </div>
     );

@@ -17,16 +17,16 @@ function MiniUniversityCard({ university }: { university: University }) {
              <Image
                 src={university.imageUrl}
                 alt={university.name}
-                width={64}
-                height={64}
-                className="rounded-md object-cover h-16 w-16 mb-3 flex-shrink-0"
+                width={48}
+                height={48}
+                className="rounded-md object-cover h-12 w-12 mb-2 flex-shrink-0"
                 data-ai-hint={university.imageHint}
             />
             <div className="flex-grow flex flex-col justify-center">
-                <p className="font-semibold text-sm leading-tight">{university.name}</p>
+                <p className="font-semibold text-xs leading-tight">{university.name}</p>
                 <p className="text-xs text-muted-foreground">{university.country}</p>
             </div>
-             <Badge variant="secondary" className="mt-2 flex-shrink-0">{university.acceptanceChance}</Badge>
+             <Badge variant="secondary" className="mt-1 text-xs">{university.acceptanceChance}</Badge>
         </div>
     );
 }
@@ -39,7 +39,7 @@ export function ShortlistedUniversitiesCard() {
     return (
         <Card className="h-full flex flex-col">
             <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-xl font-semibold">
+                <CardTitle className="flex items-center gap-2 text-lg font-semibold">
                     <Heart className="h-5 w-5" />
                     Shortlisted Universities
                 </CardTitle>
@@ -50,7 +50,7 @@ export function ShortlistedUniversitiesCard() {
             <CardContent className="flex-grow flex flex-col min-h-0">
                 {universities.length > 0 ? (
                     <ScrollArea className="flex-grow">
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 pr-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 pr-4">
                             {universities.map(uni => (
                                <Link href="/dashboard/discover" key={uni.id} className="block h-full">
                                  <MiniUniversityCard university={uni} />

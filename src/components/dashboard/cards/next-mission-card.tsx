@@ -46,7 +46,7 @@ export function NextMissionCard() {
                 <CardContent className="flex flex-col items-center justify-center text-center gap-4 flex-grow">
                     <Skeleton className="h-4 w-full" />
                     <Skeleton className="h-4 w-2/3" />
-                     <Skeleton className="h-12 w-full mt-4" />
+                     <Skeleton className="h-10 w-full mt-4" />
                 </CardContent>
             </Card>
         );
@@ -55,16 +55,16 @@ export function NextMissionCard() {
     return (
         <Card className="flex flex-col items-center justify-center text-center h-full">
             <CardHeader>
-                <CardTitle className="text-xl font-semibold">
+                <CardTitle className="text-lg font-semibold">
                     {mission ? `Stage ${user.currentStage}: ${mission.name}` : '✨ Next Mission'}
                 </CardTitle>
             </CardHeader>
-            <CardContent className="flex-grow flex flex-col items-center justify-center gap-4">
-                <p className="text-muted-foreground px-4">
+            <CardContent className="flex-grow flex flex-col items-center justify-center gap-3">
+                <p className="text-muted-foreground text-sm px-2">
                     {guidance?.guidance || "Loading your next step..."}
                 </p>
                 {mission ? (
-                     <Button size="lg" className="w-full mt-4" asChild>
+                     <Button size="default" className="w-full mt-2" asChild>
                         <Link href={mission.href}>{mission.text}</Link>
                      </Button>
                 ) : null}
