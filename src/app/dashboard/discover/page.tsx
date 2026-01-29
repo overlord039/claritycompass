@@ -1,17 +1,19 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/providers/auth-provider';
 import type { University } from '@/lib/types';
 import { universities as allUniversities } from '@/lib/data';
+import { universityDiscoveryEngine } from '@/lib/actions';
 import { StageWrapper } from '@/components/dashboard/stages/stage-wrapper';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, ArrowRight, Search, ThumbsUp } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { ArrowLeft, ArrowRight, ThumbsUp, Rocket, Target, ShieldCheck, Search, Loader2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 
 function UniversityCard({ university, onShortlist, isShortlisted }: { university: University; onShortlist: () => void; isShortlisted: boolean }) {
     return (
@@ -49,22 +51,63 @@ function UniversityCard({ university, onShortlist, isShortlisted }: { university
     );
 }
 
-export default function DiscoverPage() {
-  const { setStage, shortlistUniversity, shortlistedUniversities } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const filteredUniversities = useMemo(() => {
-    if (!searchQuery) {
-        return allUniversities;
+const UniversityGrid = ({ universities, onShortlist, shortlistedUniversities }: { universities: University[], onShortlist: (name: string) => void, shortlistedUniversities: string[] }) => {
+    if (universities.length === 0) {
+        return (
+            <div className="text-center py-16">
+                <p className="text-lg font-semibold">No universities found for this category</p>
+                <p className="text-muted-foreground">The AI couldn't find any matches based on your profile.</p>
+            </div>
+        )
     }
-    const lowercasedQuery = searchQuery.toLowerCase();
-    return allUniversities.filter(uni => 
-        uni.name.toLowerCase().includes(lowercasedQuery) ||
-        uni.country.toLowerCase().includes(lowercasedQuery) ||
-        uni.fields.some(field => field.toLowerCase().includes(lowercasedQuery))
+    return (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {universities.map(uni => (
+                <UniversityCard 
+                    key={uni.id} 
+                    university={uni} 
+                    onShortlist={() => onShortlist(uni.name)}
+                    isShortlisted={shortlistedUniversities.includes(uni.name)}
+                />
+            ))}
+        </div>
     );
-  }, [searchQuery, allUniversities]);
+}
 
+export default function DiscoverPage() {
+  const { user, setStage, shortlistUniversity, shortlistedUniversities } = useAuth();
+  const [categorizedUniversities, setCategorizedUniversities] = useState<{ dream: University[], target: University[], safe: University[] } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const discover = async () => {
+        if (!user || !user.profile) return;
+        setLoading(true);
+
+        const result = await universityDiscoveryEngine({
+            educationLevel: user.profile.academic.educationLevel,
+            degree: user.profile.academic.degree,
+            fieldOfStudy: user.profile.studyGoal.fieldOfStudy,
+            targetIntakeYear: user.profile.studyGoal.targetIntakeYear,
+            preferredCountries: user.profile.studyGoal.preferredCountries,
+            budgetRangePerYear: user.profile.budget.budgetRangePerYear,
+            ieltsStatus: user.profile.readiness.ieltsStatus,
+            greStatus: user.profile.readiness.greStatus,
+            sopStatus: user.profile.readiness.sopStatus,
+            universitiesData: JSON.stringify(allUniversities)
+        });
+
+        if (result) {
+            const dream = allUniversities.filter(u => result.dreamUniversities.includes(u.name));
+            const target = allUniversities.filter(u => result.targetUniversities.includes(u.name));
+            const safe = allUniversities.filter(u => result.safeUniversities.includes(u.name));
+            setCategorizedUniversities({ dream, target, safe });
+        }
+        setLoading(false);
+    };
+
+    discover();
+  }, [user]);
 
   const canProceed = shortlistedUniversities.length >= 1;
 
@@ -75,33 +118,39 @@ export default function DiscoverPage() {
   }
 
   return (
-    <StageWrapper icon={Search} title="Explore Universities" description="Search for universities and shortlist your favorites. You need to shortlist at least one to proceed.">
+    <StageWrapper icon={Search} title="AI-Powered University Discovery" description="Your profile has been analyzed to generate these personalized recommendations. Shortlist at least one university to proceed.">
       <div className="space-y-8">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          <Input 
-            placeholder="Search by name, country, or field of study..."
-            className="pl-10 w-full md:w-1/2 lg:w-1/3"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        
-        {filteredUniversities.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredUniversities.map(uni => (
-              <UniversityCard 
-                key={uni.id} 
-                university={uni} 
-                onShortlist={() => shortlistUniversity(uni.name)}
-                isShortlisted={shortlistedUniversities.includes(uni.name)}
-              />
-            ))}
-          </div>
+        {loading ? (
+            <div className='text-center py-10'>
+                <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                <p className="mt-4 text-muted-foreground">The AI is analyzing your profile to find the best universities for you...</p>
+                 <div className="mt-8 grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <Skeleton className="h-96 w-full" />
+                    <Skeleton className="h-96 w-full" />
+                    <Skeleton className="h-96 w-full" />
+                </div>
+            </div>
+        ) : categorizedUniversities ? (
+            <Tabs defaultValue="target" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="dream"><Rocket className="mr-2 h-4 w-4" />Dream</TabsTrigger>
+                    <TabsTrigger value="target"><Target className="mr-2 h-4 w-4" />Target</TabsTrigger>
+                    <TabsTrigger value="safe"><ShieldCheck className="mr-2 h-4 w-4" />Safe</TabsTrigger>
+                </TabsList>
+                <TabsContent value="dream" className="mt-6">
+                    <UniversityGrid universities={categorizedUniversities.dream} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} />
+                </TabsContent>
+                <TabsContent value="target" className="mt-6">
+                    <UniversityGrid universities={categorizedUniversities.target} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} />
+                </TabsContent>
+                <TabsContent value="safe" className="mt-6">
+                    <UniversityGrid universities={categorizedUniversities.safe} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} />
+                </TabsContent>
+            </Tabs>
         ) : (
-            <div className="text-center py-16">
-                <p className="text-lg font-semibold">No universities found</p>
-                <p className="text-muted-foreground">Try adjusting your search query.</p>
+             <div className="text-center py-16">
+                <p className="text-lg font-semibold">Could not generate recommendations</p>
+                <p className="text-muted-foreground">There was an error while the AI was analyzing your profile.</p>
             </div>
         )}
 
