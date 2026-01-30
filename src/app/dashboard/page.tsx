@@ -7,11 +7,30 @@ import { NextMissionCard } from '@/components/dashboard/cards/next-mission-card'
 import { AiGuidance } from '@/components/dashboard/ai-guidance';
 import { StageIndicator } from '@/components/dashboard/stage-indicator';
 import { AiChatCard } from '@/components/dashboard/cards/ai-chat-card';
-import { Card, CardContent } from '@/components/ui/card';
-
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { RotateCcw } from 'lucide-react';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardHomePage() {
-    const { loading, user } = useAuth();
+    const { loading, user, unlockUniversities } = useAuth();
+    const router = useRouter();
+
+    const handleUnlock = async () => {
+        await unlockUniversities();
+        router.push('/dashboard/finalize');
+    };
 
     if (loading || !user) {
         return (
@@ -47,6 +66,36 @@ export default function DashboardHomePage() {
                     <div className="space-y-6">
                         <NextMissionCard />
                         <AiGuidance />
+                        {user.currentStage >= 5 && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                                        <RotateCcw className="h-4 w-4" />
+                                        Re-strategize
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-xs text-muted-foreground mb-4">Unlock your choices to add or change universities. This will reset your current action plan.</p>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="outline" className="w-full">Add/Change University</Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Adding another university or changing your choices will reset your current preparation plan and all associated tasks.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={handleUnlock}>Confirm & Re-strategize</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </CardContent>
+                            </Card>
+                        )}
                     </div>
                 </div>
             </CardContent>

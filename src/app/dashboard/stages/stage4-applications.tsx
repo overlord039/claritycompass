@@ -59,14 +59,7 @@ const PreparingSkeleton = ({ user }: { user: AppUser | null }) => (
 
 
 const CompletionView = () => {
-    const { markPreparationComplete, unlockUniversities, user } = useAuth();
-    const router = useRouter();
-
-    const handleUnlock = async () => {
-        await unlockUniversities();
-        router.push('/dashboard/finalize');
-    };
-
+    const { markPreparationComplete, user } = useAuth();
     const isMarkedComplete = user?.state?.applicationPreparationCompleted;
     const actionPlan = user?.state?.actionPlan;
     const tasks = user?.applicationTasks || [];
@@ -138,34 +131,13 @@ const CompletionView = () => {
 
                 <div className="pt-6 border-t border-dashed text-center">
                      <h4 className="font-semibold mb-4 text-lg">Your Next Move</h4>
-                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="p-4 rounded-lg border bg-background/50 flex flex-col items-center">
                              <h5 className="font-semibold mb-2">Finalize Preparation</h5>
                              <p className="text-xs text-muted-foreground mb-4">Mark this stage as complete to lock your progress and move to a post-application monitoring view.</p>
                              <Button onClick={markPreparationComplete} disabled={isMarkedComplete} className="w-full mt-auto">
                                 {isMarkedComplete ? <><Check className="mr-2"/>Completed</> : "Mark Preparation Complete"}
                             </Button>
-                        </div>
-                        <div className="p-4 rounded-lg border bg-background/50 flex flex-col items-center">
-                             <h5 className="font-semibold mb-2">Re-strategize</h5>
-                             <p className="text-xs text-muted-foreground mb-4">Unlock your choices to add or change universities. This will reset your current action plan.</p>
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="outline" className="w-full mt-auto">Add/Change University</Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            Adding another university or changing your choices will reset your current preparation plan and all associated tasks.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={handleUnlock}>Confirm & Re-strategize</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
                         </div>
                         <div className="p-4 rounded-lg border bg-background/50 flex flex-col items-center">
                             <h5 className="font-semibold mb-2">Review Dashboard</h5>
@@ -273,7 +245,7 @@ export default function Stage4Applications() {
         generateTasks();
     }, [user, firestore]);
     
-    if (authLoading) {
+    if (authLoading || !user) {
         return <PreparingSkeleton user={user} />;
     }
     
