@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/providers/auth-provider';
 import { universities as allUniversities } from '@/lib/data';
@@ -291,6 +291,24 @@ export default function DiscoverPage() {
   const shortlistedAndRecommended = allRecommendations.filter(uni => shortlistedUniversities.includes(uni.name));
   const lockedAndRecommended = allRecommendations.filter(uni => lockedUniversities.includes(uni.name));
 
+  const defaultAiTab = useMemo(() => {
+    if (!categorizedUniversities) {
+      return 'target';
+    }
+    const { dream, target, safe } = categorizedUniversities;
+    const counts = {
+      target: target.length,
+      dream: dream.length,
+      safe: safe.length,
+    };
+    
+    const defaultCategory = (Object.keys(counts) as Array<keyof typeof counts>).reduce((a, b) =>
+      counts[a] >= counts[b] ? a : b
+    );
+
+    return defaultCategory;
+  }, [categorizedUniversities]);
+
   return (
     <Tabs defaultValue="discover" className="w-full">
         <TabsList className="w-full justify-start">
@@ -305,7 +323,7 @@ export default function DiscoverPage() {
                 {loading ? (
                     <LoadingSkeletons/>
                 ) : categorizedUniversities ? (
-                    <Tabs defaultValue="target" className="w-full">
+                    <Tabs defaultValue={defaultAiTab} className="w-full">
                         <TabsList className="w-full justify-start">
                             <TabsTrigger value="dream"><Rocket className="mr-2 h-4 w-4" />Dream ({categorizedUniversities.dream.length})</TabsTrigger>
                             <TabsTrigger value="target"><Target className="mr-2 h-4 w-4" />Target ({categorizedUniversities.target.length})</TabsTrigger>
