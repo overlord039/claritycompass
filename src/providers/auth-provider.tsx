@@ -445,19 +445,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [firestore, firebaseUser, toast]);
 
   const addSession = useCallback(async (sessionData: Omit<Session, 'id' | 'userId' | 'createdAt' | 'date'> & { date: Date }) => {
-    if (!firebaseUser) return;
+    if (!firebaseUser) {
+        toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to add a session.' });
+        throw new Error('User not authenticated');
+    }
     const sessionCollectionRef = collection(firestore, 'users', firebaseUser.uid, 'sessions');
     const newSessionRef = doc(sessionCollectionRef);
     const newSession = {
       userId: firebaseUser.uid,
       title: sessionData.title,
       type: sessionData.type,
-      date: sessionData.date, // The date is already a JS Date object
+      date: sessionData.date,
       createdAt: serverTimestamp(),
       id: newSessionRef.id,
     };
-    await setDoc(newSessionRef, newSession);
-    toast({ title: 'Session Added', description: `${sessionData.title} has been scheduled.` });
+    try {
+        await setDoc(newSessionRef, newSession);
+        toast({ title: 'Session Added', description: `${sessionData.title} has been scheduled.` });
+    } catch (e: any) {
+        console.error("Error adding session:", e);
+        toast({ variant: 'destructive', title: 'Save Failed', description: e.message || 'Could not save the session. Please try again.' });
+        throw e; // Re-throw the error
+    }
   }, [firestore, firebaseUser, toast]);
 
   const deleteSession = useCallback(async (sessionId: string) => {

@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Book, Plus, Trash2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Book, Plus, Trash2, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -21,14 +21,16 @@ import { Timestamp } from 'firebase/firestore';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
-function AddSessionForm({ onAddSession }: { onAddSession: (session: Omit<Session, 'id' | 'userId' | 'createdAt' | 'date'> & { date: Date }) => void }) {
+function AddSessionForm({ onAddSession, isSubmitting }: { onAddSession: (session: Omit<Session, 'id' | 'userId' | 'createdAt' | 'date'> & { date: Date }) => Promise<void>, isSubmitting: boolean }) {
     const [title, setTitle] = useState('');
     const [date, setDate] = useState<Date | undefined>();
     const [type, setType] = useState<Session['type'] | undefined>();
     const { toast } = useToast();
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isSubmitting) return;
+
         if (!title || !date || !type) {
             toast({
                 variant: 'destructive',
@@ -37,7 +39,10 @@ function AddSessionForm({ onAddSession }: { onAddSession: (session: Omit<Session
             });
             return;
         }
-        onAddSession({ title, date, type });
+        
+        await onAddSession({ title, date, type });
+
+        // Reset form on success, as dialog will close
         setTitle('');
         setDate(undefined);
         setType(undefined);
@@ -49,7 +54,7 @@ function AddSessionForm({ onAddSession }: { onAddSession: (session: Omit<Session
                 <Label htmlFor="title" className="text-right">
                     Title
                 </Label>
-                <Input id="title" name="title" value={title} onChange={(e) => setTitle(e.target.value)} className="col-span-3" />
+                <Input id="title" name="title" value={title} onChange={(e) => setTitle(e.target.value)} className="col-span-3" disabled={isSubmitting} />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="date" className="text-right">
@@ -63,6 +68,7 @@ function AddSessionForm({ onAddSession }: { onAddSession: (session: Omit<Session
                                 "w-full justify-start text-left font-normal col-span-3",
                                 !date && "text-muted-foreground"
                             )}
+                            disabled={isSubmitting}
                         >
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {date ? format(date, "PPP") : <span>Pick a date</span>}
@@ -82,7 +88,7 @@ function AddSessionForm({ onAddSession }: { onAddSession: (session: Omit<Session
                 <Label htmlFor="type" className="text-right">
                     Type
                 </Label>
-                <Select onValueChange={(value: Session['type']) => setType(value)} value={type}>
+                <Select onValueChange={(value: Session['type']) => setType(value)} value={type} disabled={isSubmitting}>
                     <SelectTrigger className="col-span-3">
                         <SelectValue placeholder="Select event type" />
                     </SelectTrigger>
@@ -96,9 +102,12 @@ function AddSessionForm({ onAddSession }: { onAddSession: (session: Omit<Session
             </div>
             <DialogFooter>
                 <DialogClose asChild>
-                    <Button type="button" variant="secondary">Cancel</Button>
+                    <Button type="button" variant="secondary" disabled={isSubmitting}>Cancel</Button>
                 </DialogClose>
-                <Button type="submit">Save Event</Button>
+                <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Save Event
+                </Button>
             </DialogFooter>
         </form>
     );
@@ -108,6 +117,7 @@ export default function NotesAndSessionsPage() {
     const { user, sessions, updateNotes, addSession, deleteSession } = useAuth();
     const [notes, setNotes] = useState(user?.state?.notes || '');
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         if (user?.state?.notes) {
@@ -119,9 +129,16 @@ export default function NotesAndSessionsPage() {
         updateNotes(notes);
     };
     
-    const handleAddSession = (newSessionData: Omit<Session, 'id' | 'userId' | 'createdAt' | 'date'> & { date: Date }) => {
-        addSession(newSessionData);
-        setIsDialogOpen(false);
+    const handleAddSession = async (newSessionData: Omit<Session, 'id' | 'userId' | 'createdAt' | 'date'> & { date: Date }) => {
+        setIsSubmitting(true);
+        try {
+            await addSession(newSessionData);
+            setIsDialogOpen(false);
+        } catch (error) {
+            // Error toast is handled in the auth provider
+        } finally {
+            setIsSubmitting(false);
+        }
     };
     
     const handleDeleteSession = (sessionId: string) => {
@@ -199,7 +216,7 @@ export default function NotesAndSessionsPage() {
                                         Schedule an important date to keep track of your progress.
                                     </DialogDescription>
                                 </DialogHeader>
-                                <AddSessionForm onAddSession={handleAddSession} />
+                                <AddSessionForm onAddSession={handleAddSession} isSubmitting={isSubmitting} />
                             </DialogContent>
                         </Dialog>
 
