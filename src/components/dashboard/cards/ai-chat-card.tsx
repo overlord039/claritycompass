@@ -79,7 +79,7 @@ export function AiChatCard() {
   };
 
   return (
-    <Card className="h-[360px] flex flex-col shadow-lg">
+    <Card className="h-[280px] flex flex-col shadow-lg">
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
             <Bot className="w-6 h-6 text-primary" />
