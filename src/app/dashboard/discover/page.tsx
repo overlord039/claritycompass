@@ -292,7 +292,7 @@ export default function DiscoverPage() {
   const lockedAndRecommended = allRecommendations.filter(uni => lockedUniversities.includes(uni.name));
 
   const SummaryPanel = () => (
-    <div className="mb-6 p-4 bg-primary/10 rounded-lg border border-primary/20 grid grid-cols-2 gap-4 text-center">
+    <div className="p-4 bg-primary/10 rounded-lg border border-primary/20 grid grid-cols-2 gap-4 text-center">
         <div>
           <h3 className="text-sm font-semibold text-muted-foreground">Shortlisted</h3>
           <p className="text-3xl font-bold text-primary">{shortlistedUniversities.length}</p>
@@ -311,10 +311,13 @@ export default function DiscoverPage() {
             <TabsTrigger value="shortlisted"><Heart className="mr-2 h-4 w-4" />Shortlisted ({shortlistedAndRecommended.length})</TabsTrigger>
             <TabsTrigger value="locked"><Lock className="mr-2 h-4 w-4" />Locked ({lockedAndRecommended.length})</TabsTrigger>
         </TabsList>
+        
+        <div className="my-6">
+            <SummaryPanel />
+        </div>
 
-        <TabsContent value="discover" className="mt-6">
+        <TabsContent value="discover" className="mt-0">
             <StageWrapper icon={Search} title="AI-Powered University Discovery" description="Your profile has been analyzed to generate these personalized recommendations. Shortlist at least one to proceed.">
-              <SummaryPanel />
               <div className="space-y-8">
                 {loading ? (
                     <LoadingSkeletons/>
@@ -346,9 +349,8 @@ export default function DiscoverPage() {
             </StageWrapper>
         </TabsContent>
 
-        <TabsContent value="shortlisted" className="mt-6">
+        <TabsContent value="shortlisted" className="mt-0">
             <StageWrapper icon={Heart} title={`Your Shortlisted Universities (${shortlistedAndRecommended.length})`} description="Review and manage your shortlisted universities.">
-                <SummaryPanel />
                 {loading ? <LoadingSkeletons/> : (
                     <div className="space-y-8">
                         <UniversityGrid universities={shortlistedAndRecommended} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} lockedUniversities={lockedUniversities} />
@@ -358,9 +360,8 @@ export default function DiscoverPage() {
             </StageWrapper>
         </TabsContent>
 
-        <TabsContent value="locked" className="mt-6">
+        <TabsContent value="locked" className="mt-0">
             <StageWrapper icon={Lock} title={`Your Locked Universities (${lockedAndRecommended.length})`} description="These are your final choices. Your application plan will be based on these selections.">
-                <SummaryPanel />
                 {loading ? <LoadingSkeletons/> : (
                     <div className="space-y-8">
                         <UniversityGrid universities={lockedAndRecommended} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} lockedUniversities={lockedUniversities} />
