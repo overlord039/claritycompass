@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { Session } from '@/lib/types';
 import { Timestamp } from 'firebase/firestore';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 function AddSessionForm({ onAddSession }: { onAddSession: (session: Omit<Session, 'id' | 'userId' | 'createdAt' | 'date'> & { date: Date }) => void }) {
@@ -144,92 +145,97 @@ export default function NotesAndSessionsPage() {
     };
 
     return (
-        <div className="grid md:grid-cols-2 gap-8 items-start">
-            {/* Notes Section */}
-            <Card className="h-full flex flex-col">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Book className="h-5 w-5 text-primary" />
-                        My Private Notes
-                    </CardTitle>
-                    <CardDescription>
-                        Jot down your thoughts, questions, and ideas. Only you can see this.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="flex-grow">
-                    <Textarea
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Start writing your notes for your study abroad journey..."
-                        className="min-h-[300px] text-sm h-full resize-none"
-                    />
-                </CardContent>
-                <CardFooter>
-                    <Button onClick={handleSaveNotes} className="ml-auto">Save Notes</Button>
-                </CardFooter>
-            </Card>
+        <Tabs defaultValue="notes" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
+                <TabsTrigger value="notes">
+                    <Book className="mr-2 h-4 w-4" />
+                    My Private Notes
+                </TabsTrigger>
+                <TabsTrigger value="sessions">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    Important Dates
+                </TabsTrigger>
+            </TabsList>
+            <TabsContent value="notes" className="mt-6">
+                <Card className="max-w-3xl mx-auto">
+                    <CardHeader>
+                        <CardTitle>My Private Notes</CardTitle>
+                        <CardDescription>
+                            Jot down your thoughts, questions, and ideas. Only you can see this.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Textarea
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            placeholder="Start writing your notes for your study abroad journey..."
+                            className="min-h-[400px] text-sm resize-none"
+                        />
+                    </CardContent>
+                    <CardFooter>
+                        <Button onClick={handleSaveNotes} className="ml-auto">Save Notes</Button>
+                    </CardFooter>
+                </Card>
+            </TabsContent>
+            <TabsContent value="sessions" className="mt-6">
+                 <Card className="max-w-3xl mx-auto">
+                    <CardHeader>
+                        <CardTitle>Important Dates & Sessions</CardTitle>
+                        <CardDescription>
+                            Keep track of exam dates, application deadlines, and meetings.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-grow flex flex-col gap-4">
+                        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button className="w-full">
+                                    <Plus className="mr-2 h-4 w-4" /> Add New Date/Session
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[425px]">
+                                <DialogHeader>
+                                    <DialogTitle>Add a new event</DialogTitle>
+                                    <DialogDescription>
+                                        Schedule an important date to keep track of your progress.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <AddSessionForm onAddSession={handleAddSession} />
+                            </DialogContent>
+                        </Dialog>
 
-            {/* Sessions Section */}
-            <Card className="h-full flex flex-col">
-                <CardHeader>
-                     <CardTitle className="flex items-center gap-2">
-                        <CalendarIcon className="h-5 w-5 text-primary" />
-                        Important Dates & Sessions
-                    </CardTitle>
-                    <CardDescription>
-                        Keep track of exam dates, application deadlines, and meetings.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="flex-grow flex flex-col gap-4">
-                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                        <DialogTrigger asChild>
-                            <Button className="w-full">
-                                <Plus className="mr-2 h-4 w-4" /> Add New Date/Session
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
-                            <DialogHeader>
-                                <DialogTitle>Add a new event</DialogTitle>
-                                <DialogDescription>
-                                    Schedule an important date to keep track of your progress.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <AddSessionForm onAddSession={handleAddSession} />
-                        </DialogContent>
-                    </Dialog>
-
-                    <ScrollArea className="flex-grow h-72">
-                        <div className="space-y-3 pr-4">
-                            {sortedSessions.length > 0 ? (
-                                sortedSessions.map(session => {
-                                    const iconInfo = getIconInfo(session.type);
-                                    const sessionDate = session.date instanceof Timestamp ? session.date.toDate() : new Date(session.date);
-                                    return (
-                                    <div key={session.id} className="flex items-center justify-between p-3 rounded-md bg-background/50 border">
-                                        <div className="flex items-center gap-3">
-                                            <div className={cn("p-1.5 rounded-full", iconInfo.bg)}>
-                                                <CalendarIcon className={cn("h-4 w-4", iconInfo.color)} />
+                        <ScrollArea className="flex-grow h-96">
+                            <div className="space-y-3 pr-4">
+                                {sortedSessions.length > 0 ? (
+                                    sortedSessions.map(session => {
+                                        const iconInfo = getIconInfo(session.type);
+                                        const sessionDate = session.date instanceof Timestamp ? session.date.toDate() : new Date(session.date);
+                                        return (
+                                        <div key={session.id} className="flex items-center justify-between p-3 rounded-md bg-background/50 border">
+                                            <div className="flex items-center gap-3">
+                                                <div className={cn("p-1.5 rounded-full", iconInfo.bg)}>
+                                                    <CalendarIcon className={cn("h-4 w-4", iconInfo.color)} />
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold text-sm">{session.title}</p>
+                                                    <p className="text-xs text-muted-foreground">{format(sessionDate, 'PPP')}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="font-semibold text-sm">{session.title}</p>
-                                                <p className="text-xs text-muted-foreground">{format(sessionDate, 'PPP')}</p>
-                                            </div>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteSession(session.id)}>
+                                                <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                                            </Button>
                                         </div>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteSession(session.id)}>
-                                            <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                                        </Button>
+                                    )})
+                                ) : (
+                                    <div className="text-center py-10 text-sm text-muted-foreground h-full flex flex-col justify-center items-center">
+                                        <p>You have no upcoming dates.</p>
+                                        <p>Click the button above to add one.</p>
                                     </div>
-                                )})
-                            ) : (
-                                <div className="text-center py-10 text-sm text-muted-foreground h-full flex flex-col justify-center items-center">
-                                    <p>You have no upcoming dates.</p>
-                                    <p>Click the button above to add one.</p>
-                                </div>
-                            )}
-                        </div>
-                    </ScrollArea>
-                </CardContent>
-            </Card>
-        </div>
+                                )}
+                            </div>
+                        </ScrollArea>
+                    </CardContent>
+                </Card>
+            </TabsContent>
+        </Tabs>
     );
 }
