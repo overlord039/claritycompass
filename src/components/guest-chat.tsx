@@ -111,9 +111,9 @@ export function GuestChat() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="fixed bottom-6 right-6 z-50"
+            className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6"
           >
-            <Card className="w-[380px] h-[550px] flex flex-col shadow-2xl">
+            <Card className="w-[calc(100vw-2rem)] h-[calc(100vh-4rem)] sm:w-[380px] sm:h-[550px] flex flex-col shadow-2xl">
               <CardHeader className="flex-row items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-primary/20 rounded-full">

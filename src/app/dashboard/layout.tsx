@@ -19,21 +19,23 @@ function DashboardNav() {
     ];
 
     return (
-        <nav className="flex items-center space-x-2">
-            {navItems.map((item) => (
-                <Button
-                    key={item.name}
-                    asChild
-                    variant={pathname === item.href ? 'secondary' : 'ghost'}
-                    className={cn(
-                        "font-semibold",
-                        pathname === item.href ? "text-foreground" : "text-muted-foreground"
-                    )}
-                >
-                    <Link href={item.href}>{item.name.toUpperCase()}</Link>
-                </Button>
-            ))}
-        </nav>
+        <div className="w-full overflow-x-auto">
+            <nav className="flex items-center space-x-2">
+                {navItems.map((item) => (
+                    <Button
+                        key={item.name}
+                        asChild
+                        variant={pathname === item.href ? 'secondary' : 'ghost'}
+                        className={cn(
+                            "font-semibold shrink-0",
+                            pathname === item.href ? "text-foreground" : "text-muted-foreground"
+                        )}
+                    >
+                        <Link href={item.href}>{item.name.toUpperCase()}</Link>
+                    </Button>
+                ))}
+            </nav>
+        </div>
     );
 }
 
