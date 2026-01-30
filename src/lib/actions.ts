@@ -20,6 +20,11 @@ import {
     type AIPersonalizedGuidanceInput,
     type AIPersonalizedGuidanceOutput,
 } from '@/ai/flows/ai-personalized-guidance';
+import {
+    guestChat as guestChatFlow,
+    type GuestChatInput,
+    type GuestChatOutput,
+} from '@/ai/flows/guest-chat-flow';
 
 
 export async function assessProfile(
@@ -91,4 +96,16 @@ export async function getAIPersonalizedGuidance(
     // }
 
     return result;
+}
+
+export async function guestChat(
+  input: GuestChatInput
+): Promise<GuestChatOutput | null> {
+    try {
+        const output = await guestChatFlow(input);
+        return output;
+    } catch (error) {
+        console.error('Error in guestChat action:', error);
+        return null;
+    }
 }

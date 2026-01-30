@@ -8,6 +8,7 @@ import { universities } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import type { University } from '@/lib/types';
+import { GuestChat } from '@/components/guest-chat';
 
 
 const UniversityCard = ({ uni }: { uni: University }) => (
@@ -147,6 +148,8 @@ export default function Home() {
       <footer className="p-4 text-center text-muted-foreground text-sm">
         © {new Date().getFullYear()} Clarity Compass. A hackathon prototype.
       </footer>
+
+      <GuestChat />
     </div>
   );
 }
