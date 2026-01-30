@@ -41,6 +41,7 @@ export default function Home() {
   };
 
   const allFields = [...new Set(universities.flatMap(u => u.fields))];
+  const allCountries = [...new Set(universities.map(u => u.country))];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -120,6 +121,19 @@ export default function Home() {
                     <div className="flex animate-marquee-reverse hover:[animation-play-state:paused] w-max">
                         {[...allFields, ...allFields].map((field, index) => (
                             <Badge key={`${field}-${index}`} variant="secondary" className="text-sm px-4 py-1.5 bg-background/50 mx-2 flex-shrink-0">{field}</Badge>
+                        ))}
+                    </div>
+                    <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-card/40 to-transparent pointer-events-none" />
+                    <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-card/40 to-transparent pointer-events-none" />
+                  </div>
+                </div>
+
+                <div className="mt-12 text-center">
+                  <h3 className="text-xl font-bold tracking-tight text-foreground font-headline">Spanning the Globe</h3>
+                   <div className="mt-6 w-full overflow-x-hidden relative">
+                    <div className="flex animate-marquee hover:[animation-play-state:paused] w-max">
+                        {[...allCountries, ...allCountries].map((country, index) => (
+                            <Badge key={`${country}-${index}`} variant="secondary" className="text-sm px-4 py-1.5 bg-background/50 mx-2 flex-shrink-0">{country}</Badge>
                         ))}
                     </div>
                     <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-card/40 to-transparent pointer-events-none" />
