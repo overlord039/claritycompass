@@ -168,10 +168,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!firebaseUser) return;
     const batch = writeBatch(firestore);
     
-    const userRef = doc(firestore, 'users', firebaseUser.id);
+    const userRef = doc(firestore, 'users', firebaseUser.uid);
     batch.update(userRef, { currentStage: 5 });
 
-    const userStateRef = doc(firestore, 'user_state', firebaseUser.id);
+    const userStateRef = doc(firestore, 'user_state', firebaseUser.uid);
     batch.set(userStateRef, { currentStage: 5, applicationPreparationCompleted: true }, { merge: true });
 
     await batch.commit();
@@ -456,8 +456,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateTaskStatus = useCallback(async (taskId: string, completed: boolean) => {
     if (!firebaseUser || !appUser) return;
-    const taskRef = doc(firestore, 'users', firebaseUser.id, 'tasks', taskId);
-    const profileRef = doc(firestore, 'profiles', firebaseUser.id);
+    const taskRef = doc(firestore, 'users', firebaseUser.uid, 'tasks', taskId);
+    const profileRef = doc(firestore, 'profiles', firebaseUser.uid);
     const batch = writeBatch(firestore);
 
     if (completed) {
