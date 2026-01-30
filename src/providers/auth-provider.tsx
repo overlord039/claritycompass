@@ -39,7 +39,7 @@ type AuthContextType = {
   removeShortlistedUniversity: (universityName: string) => Promise<void>;
   lockUniversities: (universityNames: string[]) => Promise<void>;
   unlockUniversities: () => Promise<void>;
-  updateTasks: (tasks: {title: string, completed: boolean}[]) => Promise<void>;
+  updateTasks: (tasks: {id: string, title: string, completed: boolean}[]) => Promise<void>;
   updateTaskStatus: (taskId: string, completed: boolean) => Promise<void>;
   updateNotes: (notes: string) => Promise<void>;
   addSession: (sessionData: Omit<Session, 'id' | 'userId' | 'createdAt' | 'date'> & { date: Date }) => Promise<void>;
@@ -410,13 +410,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await batch.commit();
   }, [firestore, firebaseUser, appUser]);
 
-  const updateTasks = useCallback(async (newTasks: {title: string, completed: boolean}[]) => {
+  const updateTasks = useCallback(async (newTasks: {id: string, title: string, completed: boolean}[]) => {
     if (!firebaseUser) return;
     const batch = writeBatch(firestore);
     newTasks.forEach(task => {
-        const taskRef = doc(collection(firestore, 'users', firebaseUser.uid, 'tasks'));
+        const taskRef = doc(firestore, 'users', firebaseUser.uid, 'tasks', task.id);
         batch.set(taskRef, {
-            id: taskRef.id,
+            id: task.id,
             userId: firebaseUser.uid,
             title: task.title,
             stage: 4,
@@ -429,10 +429,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [firestore, firebaseUser]);
 
   const updateTaskStatus = useCallback(async (taskId: string, completed: boolean) => {
-    if (!firebaseUser) return;
+    if (!firebaseUser || !appUser) return;
     const taskRef = doc(firestore, 'users', firebaseUser.uid, 'tasks', taskId);
-    await updateDoc(taskRef, { completed });
-  }, [firestore, firebaseUser]);
+    const profileRef = doc(firestore, 'profiles', firebaseUser.uid);
+    const batch = writeBatch(firestore);
+
+    if (completed) {
+        switch (taskId) {
+            case 'task_sop':
+                if (appUser.profile) batch.update(profileRef, { 'readiness.sopStatus': 'Ready' });
+                batch.update(taskRef, { completed: true });
+                break;
+            case 'task_ielts':
+                if (appUser.profile) batch.update(profileRef, { 'readiness.ieltsStatus': 'Completed' });
+                batch.delete(taskRef);
+                break;
+            case 'task_gre':
+                if (appUser.profile) batch.update(profileRef, { 'readiness.greStatus': 'Completed' });
+                batch.delete(taskRef);
+                break;
+            default:
+                batch.update(taskRef, { completed: true });
+                break;
+        }
+    } else {
+        batch.update(taskRef, { completed: false });
+        if (taskId === 'task_sop' && appUser.profile) {
+            batch.update(profileRef, { 'readiness.sopStatus': 'Draft' });
+        }
+    }
+    
+    await batch.commit();
+  }, [firestore, firebaseUser, appUser]);
 
   const updateNotes = useCallback(async (notes: string) => {
     if (!firebaseUser) return;

@@ -11,7 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useFirestore } from '@/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { universities as allUniversities } from '@/lib/data';
@@ -27,7 +27,8 @@ export default function TasksPage() {
             if (user && user.profile && user.lockedUniversities.length > 0 && !user.state?.actionPlan) {
                 setLoading(true);
 
-                const lockedUniversity = allUniversities.find(u => u.name === user.lockedUniversities[0]);
+                const lockedUniversityName = user.lockedUniversities[0];
+                const lockedUniversity = allUniversities.find(u => u.name === lockedUniversityName);
 
                 if (!lockedUniversity || !user.profile) {
                     console.error("Locked university or user profile not found");
@@ -35,53 +36,53 @@ export default function TasksPage() {
                     return;
                 }
 
-                const baseDocuments = [
-                    "Statement of Purpose (SOP)",
-                    "Academic Transcripts",
-                    "Resume / CV",
-                    "Passport Copy"
-                ];
+                // 1. GENERATE DOCUMENTS LIST
+                const baseDocuments = ["Statement of Purpose (SOP)", "Academic Transcripts", "Resume / CV", "Passport Copy"];
                 const documents = [...baseDocuments];
                 if (lockedUniversity.ielts_required) documents.push("IELTS Score Report");
                 if (lockedUniversity.gre_required) documents.push("GRE Score Report");
-                if (user.profile.studyGoal.intendedDegree === "masters-mba") documents.push("Work Experience Letter");
+                if (user.profile.studyGoal.intendedDegree === "masters-mba") documents.push("Work Experience Certificate");
+                 if (user.profile.studyGoal.fieldOfStudy === "MBBS") {
+                    documents.push("Medical Fitness Certificate");
+                    documents.push("Eligibility Certificate");
+                }
                 if (user.profile.budget.fundingType !== "self-funded") documents.push("Financial Documents");
 
+                // 2. DEFINE TIMELINE
                 const timeline = [
                     { phase: "Phase 1", focus: "Profile & Document Preparation", duration: "1-2 Weeks" },
-                    { phase: "Phase 2", focus: "SOP Finalization", duration: "2-3 Weeks" },
+                    { phase: "Phase 2", focus: "SOP Drafting and Refinement", duration: "2-3 Weeks" },
                     { phase: "Phase 3", focus: "Exam Completion (if required)", duration: "4-6 Weeks" },
                     { phase: "Phase 4", focus: "Application Form Submission", duration: "1 Week" },
                     { phase: "Phase 5", focus: "Post-Submission Tracking", duration: "Ongoing" },
                 ];
 
-                const generatedTasks: { title: string, completed: boolean }[] = [];
-                
-                generatedTasks.push({
-                    title: "Draft Statement of Purpose",
-                    completed: user.profile.readiness.sopStatus === "Ready"
-                });
-                generatedTasks.push({ title: "Collect academic transcripts", completed: false });
-                generatedTasks.push({ title: "Prepare academic resume", completed: false });
-
+                // 3. GENERATE TASKS
+                const generatedTasks: { id: string, title: string, completed: boolean }[] = [];
+                generatedTasks.push({ id: "task_sop", title: "Draft Statement of Purpose", completed: user.profile.readiness.sopStatus === "Ready" });
+                generatedTasks.push({ id: "task_transcripts", title: "Collect academic transcripts", completed: false });
+                generatedTasks.push({ id: "task_resume", title: "Prepare academic resume", completed: false });
+                generatedTasks.push({ id: "task_application_form", title: "Review and fill university application form", completed: false });
                 if (lockedUniversity.ielts_required && user.profile.readiness.ieltsStatus !== 'Completed') {
-                    generatedTasks.push({ title: "Prepare and complete IELTS exam", completed: false });
+                    generatedTasks.push({ id: "task_ielts", title: "Prepare and complete IELTS exam", completed: false });
                 }
                 if (lockedUniversity.gre_required && user.profile.readiness.greStatus !== 'Completed') {
-                    generatedTasks.push({ title: "Prepare and complete GRE exam", completed: false });
+                    generatedTasks.push({ id: "task_gre", title: "Prepare and complete GRE exam", completed: false });
                 }
-
                 if (user.profile.budget.fundingType === "loan-dependent") {
-                    generatedTasks.push({ title: "Start education loan process", completed: false });
+                    generatedTasks.push({ id: "task_loan", title: "Initiate education loan process", completed: false });
                 }
                 if (user.profile.budget.fundingType === "scholarship-dependent") {
-                    generatedTasks.push({ title: "Research and apply for scholarships", completed: false });
+                    generatedTasks.push({ id: "task_scholarship", title: "Research and apply for scholarships", completed: false });
                 }
-
                 if (user.profile.studyGoal.intendedDegree === "masters-mba") {
-                    generatedTasks.push({ title: "Collect work experience documents", completed: false });
+                    generatedTasks.push({ id: "task_experience_docs", title: "Collect work experience documents", completed: false });
+                }
+                if (user.profile.studyGoal.fieldOfStudy === "MBBS") {
+                    generatedTasks.push({ id: "task_medical_docs", title: "Prepare medical fitness & eligibility documents", completed: false });
                 }
 
+                // 4. PREPARE FIRESTORE UPDATE
                 const applicationStrategy = {
                     summary: `This is your personalized action plan for applying to ${lockedUniversity.name}. Follow these steps to build a strong application.`,
                     requiredDocuments: documents,
@@ -90,7 +91,7 @@ export default function TasksPage() {
 
                 if (firestore && user.uid) {
                     const userStateRef = doc(firestore, 'user_state', user.uid);
-                    await setDoc(userStateRef, { actionPlan: applicationStrategy }, { merge: true });
+                    await writeBatch(firestore).set(userStateRef, { actionPlan: applicationStrategy }, { merge: true }).commit();
                     await updateTasks(generatedTasks);
                 }
 
