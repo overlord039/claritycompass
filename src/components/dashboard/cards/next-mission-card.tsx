@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { getAIPersonalizedGuidance } from '@/lib/actions';
 import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PartyPopper } from 'lucide-react';
+import { PartyPopper, Lightbulb, ListChecks } from 'lucide-react';
 
 export function NextMissionCard() {
     const { user } = useAuth();
@@ -40,14 +40,24 @@ export function NextMissionCard() {
 
     if (loading || !user) {
         return (
-            <Card>
+            <Card className="bg-primary/10 backdrop-blur-xl border border-primary/20 shadow-lg shadow-primary/10">
                 <CardHeader className="p-4">
-                    <Skeleton className="h-5 w-3/4" />
+                    <CardTitle className="flex items-center gap-2 font-headline text-base">
+                        <Lightbulb className="h-4 w-4 text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]" />
+                        AI Counsellor
+                    </CardTitle>
                 </CardHeader>
-                <CardContent className="flex flex-col items-center justify-center text-center gap-3 p-4 flex-grow">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-2/3" />
-                     <Skeleton className="h-9 w-full mt-2" />
+                <CardContent className="space-y-3 p-4 pt-0">
+                   <Skeleton className="h-3 w-full bg-primary/20" />
+                   <Skeleton className="h-3 w-3/4 bg-primary/20" />
+                   <div className="pt-2">
+                    <h3 className="font-semibold mb-1 flex items-center gap-2 text-xs"><ListChecks size={14} /> Next Actions:</h3>
+                    <ul className="space-y-1.5">
+                        <li><Skeleton className="h-3 w-1/2 bg-primary/20" /></li>
+                        <li><Skeleton className="h-3 w-2/3 bg-primary/20" /></li>
+                    </ul>
+                   </div>
+                   <Skeleton className="h-9 w-full mt-2" />
                 </CardContent>
             </Card>
         );
@@ -55,17 +65,27 @@ export function NextMissionCard() {
     
     if (user.currentStage >= 5) {
         return (
-            <Card className="flex flex-col items-center justify-center text-center">
+            <Card className="bg-primary/10 backdrop-blur-xl border border-primary/20 shadow-lg shadow-primary/10">
                 <CardHeader className="p-4">
                     <CardTitle className="text-base font-semibold flex items-center gap-2">
                         <PartyPopper className="h-5 w-5 text-primary" />
                         Application Ready
                     </CardTitle>
                 </CardHeader>
-                <CardContent className="flex-grow flex flex-col items-center justify-center gap-2 p-4 pt-0">
-                    <p className="text-muted-foreground text-xs px-2">
-                        You’ve completed all preparation tasks. You’re now ready to submit applications confidently.
+                <CardContent className="flex-grow flex flex-col justify-center gap-3 p-4 pt-0">
+                    <p className="text-muted-foreground text-xs">
+                        {guidance?.guidance || "You’ve completed all preparation tasks. You’re now ready to submit applications confidently."}
                     </p>
+                    {guidance?.actions && guidance.actions.length > 0 && (
+                        <div className="pt-2 text-left w-full">
+                            <h3 className="font-semibold mb-1 flex items-center gap-2 text-xs"><ListChecks size={14} /> Next Actions:</h3>
+                            <ul className="list-disc list-inside space-y-1 text-xs text-muted-foreground">
+                                {guidance.actions.map((action, index) => (
+                                    <li key={index}>{action}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                     <Button size="sm" className="w-full mt-2" asChild>
                         <Link href="/dashboard/tasks">Review Application Strategy</Link>
                     </Button>
@@ -75,16 +95,27 @@ export function NextMissionCard() {
     }
 
     return (
-        <Card className="flex flex-col items-center justify-center text-center">
+        <Card className="bg-primary/10 backdrop-blur-xl border border-primary/20 shadow-lg shadow-primary/10">
             <CardHeader className="p-4">
-                <CardTitle className="text-base font-semibold">
-                    {mission ? `Stage ${user.currentStage}: ${mission.name}` : '✨ Next Mission'}
+                <CardTitle className="flex items-center gap-2 font-headline text-base">
+                    <Lightbulb className="h-4 w-4 text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]" />
+                    AI Counsellor
                 </CardTitle>
             </CardHeader>
-            <CardContent className="flex-grow flex flex-col items-center justify-center gap-2 p-4">
-                <p className="text-muted-foreground text-xs px-2">
+            <CardContent className="flex-grow flex flex-col justify-center gap-3 p-4 pt-0">
+                <p className="text-muted-foreground text-xs">
                     {guidance?.guidance || "Loading your next step..."}
                 </p>
+                {guidance?.actions && guidance.actions.length > 0 && (
+                  <div className="pt-1">
+                    <h3 className="font-semibold mb-1 flex items-center gap-2 text-xs"><ListChecks size={14} /> Next Actions:</h3>
+                    <ul className="list-disc list-inside space-y-1 text-xs text-muted-foreground">
+                      {guidance.actions.map((action, index) => (
+                        <li key={index}>{action}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 {mission ? (
                      <Button size="sm" className="w-full mt-2" asChild>
                         <Link href={mission.href}>{mission.text}</Link>

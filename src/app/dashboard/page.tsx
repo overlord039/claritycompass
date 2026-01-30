@@ -4,7 +4,6 @@ import { useAuth } from '@/providers/auth-provider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ProfileAnalysisCard } from '@/components/dashboard/cards/profile-analysis-card';
 import { NextMissionCard } from '@/components/dashboard/cards/next-mission-card';
-import { AiGuidance } from '@/components/dashboard/ai-guidance';
 import { StageIndicator } from '@/components/dashboard/stage-indicator';
 import { AiChatCard } from '@/components/dashboard/cards/ai-chat-card';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -65,7 +64,6 @@ export default function DashboardHomePage() {
                     </div>
                     <div className="space-y-6">
                         <NextMissionCard />
-                        <AiGuidance />
                         {user.currentStage >= 5 && (
                             <Card>
                                 <CardHeader>
