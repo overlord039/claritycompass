@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/button';
 import { LogOut, User as UserIcon, Settings, Edit, DollarSign, Target, GraduationCap, BookOpen } from 'lucide-react';
 import { Logo } from './logo';
 import Link from 'next/link';
+import { ThemeToggle } from './theme-toggle';
 
 export function Header() {
   const { user, logout } = useAuth();
@@ -42,10 +43,7 @@ export function Header() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         <Logo />
         <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon">
-                <Settings className="h-5 w-5 text-muted-foreground" />
-                <span className="sr-only">Settings</span>
-            </Button>
+            <ThemeToggle />
             <Dialog>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
