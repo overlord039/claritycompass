@@ -517,7 +517,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     await batch.commit();
     toast({ title: 'Preparation Complete!', description: "You're all set to start applying." });
-  }, [firestore, firebaseUser, toast]);
+    router.push('/dashboard');
+  }, [firestore, firebaseUser, toast, router]);
 
 
   const value = useMemo(() => ({
