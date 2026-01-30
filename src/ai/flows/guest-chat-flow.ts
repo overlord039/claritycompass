@@ -20,7 +20,9 @@ const GuestChatInputSchema = z.object({
 });
 export type GuestChatInput = z.infer<typeof GuestChatInputSchema>;
 
-const GuestChatOutputSchema = z.string().describe("The AI's response.");
+const GuestChatOutputSchema = z.object({
+  response: z.string().describe("The AI's response."),
+});
 export type GuestChatOutput = z.infer<typeof GuestChatOutputSchema>;
 
 
@@ -44,6 +46,8 @@ Conversation History:
 {{/each}}
 
 Based on the conversation history, provide a helpful and friendly response to the user's last message.
+
+Your response MUST be in a JSON object with a single key "response".
 `,
 });
 

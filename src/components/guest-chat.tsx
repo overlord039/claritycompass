@@ -58,8 +58,8 @@ export function GuestChat() {
 
     const response = await guestChat({ history: chatHistory });
 
-    if (response) {
-      setMessages(prev => [...prev, { role: 'model', content: response }]);
+    if (response && response.response) {
+      setMessages(prev => [...prev, { role: 'model', content: response.response }]);
     } else {
       setMessages(prev => [...prev, { role: 'model', content: "Sorry, I'm having trouble connecting right now. Please try again later." }]);
     }
