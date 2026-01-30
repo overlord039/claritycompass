@@ -164,6 +164,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [appUser, authProviderLoading, updateProfileStrength, toast]);
 
+  const markPreparationComplete = useCallback(async () => {
+    if (!firebaseUser) return;
+    const batch = writeBatch(firestore);
+    
+    const userRef = doc(firestore, 'users', firebaseUser.id);
+    batch.update(userRef, { currentStage: 5 });
+
+    const userStateRef = doc(firestore, 'user_state', firebaseUser.id);
+    batch.set(userStateRef, { currentStage: 5, applicationPreparationCompleted: true }, { merge: true });
+
+    await batch.commit();
+    toast({ title: 'Preparation Complete!', description: "You're all set to start applying." });
+    router.push('/dashboard');
+  }, [firestore, firebaseUser, toast, router]);
+
+  // --- Automatic Stage Progression Effect ---
+  useEffect(() => {
+    if (appUser && appUser.currentStage === 4 && !appUser.state?.applicationPreparationCompleted) {
+      if (appUser.applicationTasks.length > 0 && appUser.applicationTasks.every(t => t.completed)) {
+        markPreparationComplete();
+      }
+    }
+  }, [appUser, markPreparationComplete]);
+
+
   // --- Mutation Functions ---
   const logout = useCallback(async () => {
     await signOut(auth);
@@ -379,8 +404,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         batch.update(docRef, { locked: true });
       });
     
-    batch.update(doc(firestore, 'users', firebaseUser.uid), { currentStage: 4 });
-    batch.set(doc(firestore, 'user_state', firebaseUser.uid), { currentStage: 4 }, { merge: true });
+    batch.update(doc(firestore, 'users', firebaseUser.id), { currentStage: 4 });
+    batch.set(doc(firestore, 'user_state', firebaseUser.id), { currentStage: 4 }, { merge: true });
 
     await batch.commit();
   }, [firestore, firebaseUser, appUser]);
@@ -401,9 +426,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         batch.delete(taskRef);
     });
 
-    batch.update(doc(firestore, 'users', firebaseUser.uid), { currentStage: 3 });
+    batch.update(doc(firestore, 'users', firebaseUser.id), { currentStage: 3 });
     // Also clear the action plan from state
-    batch.set(doc(firestore, 'user_state', firebaseUser.uid), { 
+    batch.set(doc(firestore, 'user_state', firebaseUser.id), { 
         currentStage: 3,
         actionPlan: deleteField() 
     }, { merge: true });
@@ -431,8 +456,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateTaskStatus = useCallback(async (taskId: string, completed: boolean) => {
     if (!firebaseUser || !appUser) return;
-    const taskRef = doc(firestore, 'users', firebaseUser.uid, 'tasks', taskId);
-    const profileRef = doc(firestore, 'profiles', firebaseUser.uid);
+    const taskRef = doc(firestore, 'users', firebaseUser.id, 'tasks', taskId);
+    const profileRef = doc(firestore, 'profiles', firebaseUser.id);
     const batch = writeBatch(firestore);
 
     if (completed) {
@@ -465,7 +490,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateNotes = useCallback(async (notes: string) => {
     if (!firebaseUser) return;
-    const userStateDocRef = doc(firestore, 'user_state', firebaseUser.uid);
+    const userStateDocRef = doc(firestore, 'user_state', firebaseUser.id);
     await setDoc(userStateDocRef, { notes }, { merge: true });
     toast({
         title: 'Notes Saved!',
@@ -500,26 +525,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const deleteSession = useCallback(async (sessionId: string) => {
     if (!firebaseUser) return;
-    const sessionDocRef = doc(firestore, 'users', firebaseUser.uid, 'sessions', sessionId);
+    const sessionDocRef = doc(firestore, 'users', firebaseUser.id, 'sessions', sessionId);
     await deleteDoc(sessionDocRef);
     toast({ title: 'Session Removed' });
   }, [firestore, firebaseUser, toast]);
-
-  const markPreparationComplete = useCallback(async () => {
-    if (!firebaseUser) return;
-    const batch = writeBatch(firestore);
-    
-    const userRef = doc(firestore, 'users', firebaseUser.uid);
-    batch.update(userRef, { currentStage: 5 });
-
-    const userStateRef = doc(firestore, 'user_state', firebaseUser.uid);
-    batch.set(userStateRef, { currentStage: 5, applicationPreparationCompleted: true }, { merge: true });
-
-    await batch.commit();
-    toast({ title: 'Preparation Complete!', description: "You're all set to start applying." });
-    router.push('/dashboard');
-  }, [firestore, firebaseUser, toast, router]);
-
 
   const value = useMemo(() => ({
     user: appUser,
@@ -563,3 +572,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+    
