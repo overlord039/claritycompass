@@ -192,7 +192,7 @@ export default function NotesAndSessionsPage() {
                                     <Plus className="mr-2 h-4 w-4" /> Add New Date/Session
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-[425px]">
+                            <DialogContent>
                                 <DialogHeader>
                                     <DialogTitle>Add a new event</DialogTitle>
                                     <DialogDescription>
