@@ -85,7 +85,7 @@ const UniversityGrid = ({ universities, onShortlist, shortlistedUniversities, lo
         return (
             <div className="text-center py-16">
                 <p className="text-lg font-semibold">No universities found for this category</p>
-                <p className="text-muted-foreground">The recommendation engine couldn't find any matches based on your profile.</p>
+                <p className="text-muted-foreground">Please adjust your filters or check back later.</p>
             </div>
         )
     }
@@ -103,6 +103,37 @@ const UniversityGrid = ({ universities, onShortlist, shortlistedUniversities, lo
         </div>
     );
 }
+
+
+const LoadingSkeletons = () => (
+    <div className='text-center py-10'>
+        <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+        <p className="mt-4 text-muted-foreground">The recommendation engine is analyzing your profile...</p>
+         <div className="mt-8 grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Skeleton className="h-96 w-full" />
+            <Skeleton className="h-96 w-full" />
+            <Skeleton className="h-96 w-full" />
+        </div>
+    </div>
+);
+
+const ProceedSection = ({ canProceed, setStage }: { canProceed: boolean, setStage: (stage: number) => void }) => (
+    <div className="pt-6 flex flex-col items-center gap-4">
+        <p className="text-muted-foreground">{canProceed ? "You're ready for the next step!" : "Shortlist at least 1 university to continue."}</p>
+        <Button size="lg" disabled={!canProceed} onClick={() => setStage(3)} asChild>
+            <Link href="/dashboard/finalize">
+                Finalize Your Choices <ArrowRight className="ml-2" />
+            </Link>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+            <Link href="/dashboard">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Dashboard
+            </Link>
+        </Button>
+    </div>
+);
+
 
 export default function DiscoverPage() {
   const { user, setStage, shortlistUniversity, shortlistedUniversities, lockedUniversities } = useAuth();
@@ -251,12 +282,6 @@ export default function DiscoverPage() {
 
   const canProceed = shortlistedUniversities.length >= 1;
 
-  const handleProceed = () => {
-    if (canProceed) {
-      setStage(3);
-    }
-  }
-
   const allRecommendations = categorizedUniversities ? [
       ...categorizedUniversities.dream,
       ...categorizedUniversities.target,
@@ -266,9 +291,8 @@ export default function DiscoverPage() {
   const shortlistedAndRecommended = allRecommendations.filter(uni => shortlistedUniversities.includes(uni.name));
   const lockedAndRecommended = allRecommendations.filter(uni => lockedUniversities.includes(uni.name));
 
-  return (
-    <StageWrapper icon={Search} title="AI-Powered University Discovery" description="Your profile has been analyzed to generate these personalized recommendations. Shortlist at least one university to proceed.">
-      <div className="mb-6 p-4 bg-primary/10 rounded-lg border border-primary/20 grid grid-cols-2 gap-4 text-center">
+  const SummaryPanel = () => (
+    <div className="mb-6 p-4 bg-primary/10 rounded-lg border border-primary/20 grid grid-cols-2 gap-4 text-center">
         <div>
           <h3 className="text-sm font-semibold text-muted-foreground">Shortlisted</h3>
           <p className="text-3xl font-bold text-primary">{shortlistedUniversities.length}</p>
@@ -278,26 +302,23 @@ export default function DiscoverPage() {
           <p className="text-3xl font-bold text-primary">{lockedUniversities.length}</p>
         </div>
       </div>
-      <div className="space-y-8">
-        {loading ? (
-            <div className='text-center py-10'>
-                <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-                <p className="mt-4 text-muted-foreground">The recommendation engine is analyzing your profile to find the best universities for you...</p>
-                 <div className="mt-8 grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <Skeleton className="h-96 w-full" />
-                    <Skeleton className="h-96 w-full" />
-                    <Skeleton className="h-96 w-full" />
-                </div>
-            </div>
-        ) : categorizedUniversities ? (
-            <Tabs defaultValue="discover" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="discover"><Search className="mr-2 h-4 w-4" />AI Discovery</TabsTrigger>
-                    <TabsTrigger value="shortlisted"><Heart className="mr-2 h-4 w-4" />Shortlisted ({shortlistedAndRecommended.length})</TabsTrigger>
-                    <TabsTrigger value="locked"><Lock className="mr-2 h-4 w-4" />Locked ({lockedAndRecommended.length})</TabsTrigger>
-                </TabsList>
+  );
 
-                <TabsContent value="discover" className="mt-6">
+  return (
+    <Tabs defaultValue="discover" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="discover"><Search className="mr-2 h-4 w-4" />AI Discovery</TabsTrigger>
+            <TabsTrigger value="shortlisted"><Heart className="mr-2 h-4 w-4" />Shortlisted ({shortlistedAndRecommended.length})</TabsTrigger>
+            <TabsTrigger value="locked"><Lock className="mr-2 h-4 w-4" />Locked ({lockedAndRecommended.length})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="discover" className="mt-6">
+            <StageWrapper icon={Search} title="AI-Powered University Discovery" description="Your profile has been analyzed to generate these personalized recommendations. Shortlist at least one to proceed.">
+              <SummaryPanel />
+              <div className="space-y-8">
+                {loading ? (
+                    <LoadingSkeletons/>
+                ) : categorizedUniversities ? (
                     <Tabs defaultValue="target" className="w-full">
                         <TabsList className="grid w-full grid-cols-3">
                             <TabsTrigger value="dream"><Rocket className="mr-2 h-4 w-4" />Dream ({categorizedUniversities.dream.length})</TabsTrigger>
@@ -314,38 +335,40 @@ export default function DiscoverPage() {
                             <UniversityGrid universities={categorizedUniversities.safe} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} lockedUniversities={lockedUniversities} />
                         </TabsContent>
                     </Tabs>
-                </TabsContent>
+                ) : (
+                    <div className="text-center py-16">
+                        <p className="text-lg font-semibold">Could not generate recommendations</p>
+                        <p className="text-muted-foreground">There was an error while the recommendation engine was analyzing your profile.</p>
+                    </div>
+                )}
+                <ProceedSection canProceed={canProceed} setStage={setStage} />
+              </div>
+            </StageWrapper>
+        </TabsContent>
 
-                <TabsContent value="shortlisted" className="mt-6">
-                    <UniversityGrid universities={shortlistedAndRecommended} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} lockedUniversities={lockedUniversities} />
-                </TabsContent>
+        <TabsContent value="shortlisted" className="mt-6">
+            <StageWrapper icon={Heart} title={`Your Shortlisted Universities (${shortlistedAndRecommended.length})`} description="Review and manage your shortlisted universities.">
+                <SummaryPanel />
+                {loading ? <LoadingSkeletons/> : (
+                    <div className="space-y-8">
+                        <UniversityGrid universities={shortlistedAndRecommended} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} lockedUniversities={lockedUniversities} />
+                        <ProceedSection canProceed={canProceed} setStage={setStage} />
+                    </div>
+                )}
+            </StageWrapper>
+        </TabsContent>
 
-                <TabsContent value="locked" className="mt-6">
-                    <UniversityGrid universities={lockedAndRecommended} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} lockedUniversities={lockedUniversities} />
-                </TabsContent>
-            </Tabs>
-        ) : (
-             <div className="text-center py-16">
-                <p className="text-lg font-semibold">Could not generate recommendations</p>
-                <p className="text-muted-foreground">There was an error while the recommendation engine was analyzing your profile.</p>
-            </div>
-        )}
-
-        <div className="pt-6 flex flex-col items-center gap-4">
-            <p className="text-muted-foreground">{canProceed ? "You're ready for the next step!" : "Shortlist at least 1 university to continue."}</p>
-            <Button size="lg" disabled={!canProceed} onClick={handleProceed} asChild>
-                <Link href="/dashboard/finalize">
-                    Finalize Your Choices <ArrowRight className="ml-2" />
-                </Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-                <Link href="/dashboard">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Dashboard
-                </Link>
-            </Button>
-        </div>
-      </div>
-    </StageWrapper>
+        <TabsContent value="locked" className="mt-6">
+            <StageWrapper icon={Lock} title={`Your Locked Universities (${lockedAndRecommended.length})`} description="These are your final choices. Your application plan will be based on these selections.">
+                <SummaryPanel />
+                {loading ? <LoadingSkeletons/> : (
+                    <div className="space-y-8">
+                        <UniversityGrid universities={lockedAndRecommended} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} lockedUniversities={lockedUniversities} />
+                        <ProceedSection canProceed={canProceed} setStage={setStage} />
+                    </div>
+                )}
+            </StageWrapper>
+        </TabsContent>
+    </Tabs>
   );
 }
