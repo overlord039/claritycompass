@@ -6,6 +6,7 @@ import { ProfileAnalysisCard } from '@/components/dashboard/cards/profile-analys
 import { ShortlistedUniversitiesCard } from '@/components/dashboard/cards/shortlisted-universities-card';
 import { NextMissionCard } from '@/components/dashboard/cards/next-mission-card';
 import { AiGuidance } from '@/components/dashboard/ai-guidance';
+import { StageIndicator } from '@/components/dashboard/stage-indicator';
 
 
 export default function DashboardHomePage() {
@@ -13,28 +14,36 @@ export default function DashboardHomePage() {
 
     if (loading || !user) {
         return (
-             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 space-y-6">
-                    <Skeleton className="h-56 w-full" />
-                    <Skeleton className="h-56 w-full" />
-                </div>
-                <div className="space-y-6">
-                    <Skeleton className="h-56 w-full" />
-                    <Skeleton className="h-56 w-full" />
+             <div className="space-y-6">
+                <Skeleton className="h-24 w-full" />
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 space-y-6">
+                        <Skeleton className="h-56 w-full" />
+                        <Skeleton className="h-56 w-full" />
+                    </div>
+                    <div className="space-y-6">
+                        <Skeleton className="h-56 w-full" />
+                        <Skeleton className="h-56 w-full" />
+                    </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-                <ProfileAnalysisCard />
-                <ShortlistedUniversitiesCard />
+        <div className="space-y-6">
+            <div className="bg-card/60 backdrop-blur-xl border border-white/20 rounded-lg p-6 shadow-lg shadow-primary/5">
+                <StageIndicator currentStage={user.currentStage} />
             </div>
-            <div className="space-y-6">
-                <NextMissionCard />
-                <AiGuidance />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                    <ProfileAnalysisCard />
+                    <ShortlistedUniversitiesCard />
+                </div>
+                <div className="space-y-6">
+                    <NextMissionCard />
+                    <AiGuidance />
+                </div>
             </div>
         </div>
     );

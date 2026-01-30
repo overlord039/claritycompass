@@ -5,7 +5,6 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/providers/auth-provider';
 import { Header } from '@/components/header';
 import { Skeleton } from '@/components/ui/skeleton';
-import { StageIndicator } from '@/components/dashboard/stage-indicator';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -80,17 +79,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <DashboardNav />
           </div>
       </div>
-      {pathname === '/dashboard' && (
-        <div className="border-b bg-card py-6">
-            <div className="container mx-auto px-4 md:px-6">
-              <StageIndicator currentStage={user.currentStage} />
-            </div>
-        </div>
-      )}
       <main className={cn(
         "flex-grow container mx-auto px-4 md:px-6 py-6",
-        pathname !== '/dashboard' && "overflow-y-auto",
-        pathname === '/dashboard' && "overflow-hidden"
+        "overflow-y-auto"
       )}>
         {children}
       </main>
