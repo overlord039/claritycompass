@@ -134,9 +134,9 @@ export function ProfileAnalysisCard() {
             </CardHeader>
             <CardContent className="flex-grow flex flex-col md:flex-row items-center gap-4 p-4">
                 <div className="relative flex-shrink-0">
-                    <CircularProgress value={profileScore} className={cn("h-20 w-20", profileStatus.colorClass)} strokeWidth={6}/>
+                    <CircularProgress value={profileScore} className={cn("h-16 w-16", profileStatus.colorClass)} strokeWidth={6}/>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-lg font-bold text-foreground">{profileScore}</span>
+                        <span className="text-base font-bold text-foreground">{profileScore}</span>
                         <span className="text-xs text-muted-foreground">Strength</span>
                     </div>
                 </div>

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { getAIPersonalizedGuidance } from '@/lib/actions';
 import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PartyPopper, Lightbulb, ListChecks } from 'lucide-react';
+import { PartyPopper, Rocket, ListChecks } from 'lucide-react';
 
 export function NextMissionCard() {
     const { user } = useAuth();
@@ -43,8 +43,8 @@ export function NextMissionCard() {
             <Card className="bg-primary/10 backdrop-blur-xl border border-primary/20 shadow-lg shadow-primary/10">
                 <CardHeader className="p-4">
                     <CardTitle className="flex items-center gap-2 font-headline text-base">
-                        <Lightbulb className="h-4 w-4 text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]" />
-                        AI Counsellor
+                        <Rocket className="h-4 w-4 text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]" />
+                        Next Mission
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 p-4 pt-0">
@@ -98,8 +98,8 @@ export function NextMissionCard() {
         <Card className="bg-primary/10 backdrop-blur-xl border border-primary/20 shadow-lg shadow-primary/10">
             <CardHeader className="p-4">
                 <CardTitle className="flex items-center gap-2 font-headline text-base">
-                    <Lightbulb className="h-4 w-4 text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]" />
-                    AI Counsellor
+                    <Rocket className="h-4 w-4 text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]" />
+                    Next Mission
                 </CardTitle>
             </CardHeader>
             <CardContent className="flex-grow flex flex-col justify-center gap-3 p-4 pt-0">
