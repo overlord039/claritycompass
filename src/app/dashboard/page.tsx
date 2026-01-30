@@ -3,7 +3,6 @@
 import { useAuth } from '@/providers/auth-provider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ProfileAnalysisCard } from '@/components/dashboard/cards/profile-analysis-card';
-import { ShortlistedUniversitiesCard } from '@/components/dashboard/cards/shortlisted-universities-card';
 import { NextMissionCard } from '@/components/dashboard/cards/next-mission-card';
 import { AiGuidance } from '@/components/dashboard/ai-guidance';
 import { StageIndicator } from '@/components/dashboard/stage-indicator';
@@ -25,7 +24,6 @@ export default function DashboardHomePage() {
                     <div className="space-y-6">
                         <Skeleton className="h-56 w-full" />
                         <Skeleton className="h-56 w-full" />
-                        <Skeleton className="h-56 w-full" />
                     </div>
                 </div>
             </div>
@@ -45,7 +43,6 @@ export default function DashboardHomePage() {
                 <div className="space-y-6">
                     <NextMissionCard />
                     <AiGuidance />
-                    <ShortlistedUniversitiesCard />
                 </div>
             </div>
         </div>
