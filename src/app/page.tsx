@@ -110,16 +110,20 @@ export default function Home() {
                            <UniversityCard uni={uni} key={`marquee-1-${index}`} />
                         ))}
                     </div>
-                    <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-background to-transparent pointer-events-none" />
-                    <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+                    <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-card/40 to-transparent pointer-events-none" />
+                    <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-card/40 to-transparent pointer-events-none" />
                 </div>
                 
                 <div className="mt-12 text-center">
                   <h3 className="text-xl font-bold tracking-tight text-foreground font-headline">Covering a Wide Range of Disciplines</h3>
-                  <div className="mt-6 flex flex-wrap justify-center gap-2">
-                    {allFields.map((field) => (
-                      <Badge key={field} variant="secondary" className="text-sm px-3 py-1 bg-background/50">{field}</Badge>
-                    ))}
+                   <div className="mt-6 w-full overflow-x-hidden relative">
+                    <div className="flex animate-marquee-reverse hover:[animation-play-state:paused] w-max">
+                        {[...allFields, ...allFields].map((field, index) => (
+                            <Badge key={`${field}-${index}`} variant="secondary" className="text-sm px-4 py-1.5 bg-background/50 mx-2 flex-shrink-0">{field}</Badge>
+                        ))}
+                    </div>
+                    <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-card/40 to-transparent pointer-events-none" />
+                    <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-card/40 to-transparent pointer-events-none" />
                   </div>
                 </div>
             </div>
