@@ -13,6 +13,26 @@ interface StageIndicatorProps {
 }
 
 export function StageIndicator({ currentStage }: StageIndicatorProps) {
+    if (currentStage >= 5) {
+        return (
+            <div aria-label="Application Process Stage">
+               <ol role="list" className="flex items-center">
+                    {[...stages, { id: 5, name: 'Application Ready' }].map((stage) => (
+                       <li key={stage.name} className={cn('relative', stage.id !== 5 ? 'flex-1' : '')}>
+                           <div className="flex flex-col items-center text-center">
+                                {stage.id < 5 && <div className="absolute inset-0 top-5 -z-10 w-full h-0.5 bg-primary" aria-hidden="true" />}
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
+                                   <Check className="h-6 w-6 text-primary-foreground" aria-hidden="true" />
+                               </div>
+                               <p className="mt-2 text-xs md:text-sm font-medium text-foreground">{stage.name}</p>
+                           </div>
+                       </li>
+                   ))}
+               </ol>
+           </div>
+        );
+     }
+
   return (
     <div aria-label="Application Process Stage">
       <ol role="list" className="flex items-center">

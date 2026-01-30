@@ -48,6 +48,7 @@ export type UserProfile = {
 // From user_state/{uid}
 export type UserState = {
   currentStage: number; // Redundant but part of the plan
+  applicationPreparationCompleted?: boolean;
   profileStrength: {
     academics: 'Strong' | 'Average' | 'Weak' | null;
     exams: 'Not started' | 'In progress' | 'Completed' | null;

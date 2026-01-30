@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useAuth } from '@/providers/auth-provider';
 import { StageWrapper } from './stage-wrapper';
 import { Button } from '@/components/ui/button';
-import { ClipboardCheck, RotateCcw, CalendarDays, FileText, ListChecks, Lightbulb, Lock } from 'lucide-react';
+import { ClipboardCheck, RotateCcw, CalendarDays, FileText, ListChecks, Lightbulb, Lock, Check, Info, CheckCircle2 } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
@@ -14,6 +14,8 @@ import { useFirestore } from '@/firebase';
 import { doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { universities as allUniversities } from '@/lib/data';
 import type { AppUser } from '@/lib/types';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 
 const PreparingSkeleton = ({ user }: { user: AppUser | null }) => (
@@ -56,13 +58,87 @@ const PreparingSkeleton = ({ user }: { user: AppUser | null }) => (
 );
 
 
+const CompletionView = () => {
+    const { markPreparationComplete, unlockUniversities, user } = useAuth();
+    const router = useRouter();
+
+    const handleUnlock = async () => {
+        await unlockUniversities();
+        router.push('/dashboard/finalize');
+    };
+
+    const isMarkedComplete = user?.state?.applicationPreparationCompleted;
+
+    return (
+        <StageWrapper icon={CheckCircle2} title="You're Ready to Apply" description="You’ve completed all preparation tasks for your locked universities. Your profile is now application-ready.">
+            <div className="space-y-8 text-center">
+                <div className="p-6 bg-green-500/10 rounded-lg border border-green-500/20">
+                    <h3 className="font-semibold text-lg text-green-700 dark:text-green-300">All Preparation Tasks Completed</h3>
+                    <Progress value={100} className="mt-2 h-2" />
+                </div>
+
+                <div className="text-left bg-background/50 p-6 rounded-lg border">
+                    <h4 className="font-semibold mb-3 flex items-center gap-2"><Info className="h-5 w-5 text-primary" /> What this means</h4>
+                    <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+                        <li>Your required documents list is prepared.</li>
+                        <li>Your exam requirements are understood and tracked.</li>
+                        <li>Your application strategy is complete.</li>
+                        <li>You can now confidently proceed with the actual applications on the official university portals.</li>
+                    </ul>
+                </div>
+
+                <div className="pt-6 border-t border-dashed">
+                     <h4 className="font-semibold mb-4 text-lg">Your Next Move</h4>
+                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="p-4 rounded-lg border bg-background/50 flex flex-col items-center">
+                             <h5 className="font-semibold mb-2">Finalize Preparation</h5>
+                             <p className="text-xs text-muted-foreground mb-4">Mark this stage as complete to lock your progress and move to a post-application monitoring view.</p>
+                             <Button onClick={markPreparationComplete} disabled={isMarkedComplete} className="w-full mt-auto">
+                                {isMarkedComplete ? <><Check className="mr-2"/>Completed</> : "Mark Preparation Complete"}
+                            </Button>
+                        </div>
+                        <div className="p-4 rounded-lg border bg-background/50 flex flex-col items-center">
+                             <h5 className="font-semibold mb-2">Re-strategize</h5>
+                             <p className="text-xs text-muted-foreground mb-4">Unlock your choices to add or change universities. This will reset your current action plan.</p>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="outline" className="w-full mt-auto">Add/Change University</Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            Adding another university or changing your choices will reset your current preparation plan and all associated tasks.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={handleUnlock}>Confirm & Re-strategize</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
+                        <div className="p-4 rounded-lg border bg-background/50 flex flex-col items-center">
+                            <h5 className="font-semibold mb-2">Review Dashboard</h5>
+                            <p className="text-xs text-muted-foreground mb-4">Return to your main dashboard to review your profile summary, notes, and overall journey.</p>
+                            <Button variant="outline" asChild className="w-full mt-auto">
+                                <Link href="/dashboard">Back to Dashboard</Link>
+                            </Button>
+                        </div>
+                     </div>
+                </div>
+            </div>
+        </StageWrapper>
+    );
+};
+
+
 export default function Stage4Applications() {
     const { user, loading: authLoading, unlockUniversities, updateTaskStatus, applicationTasks } = useAuth();
     const firestore = useFirestore();
 
     useEffect(() => {
         const generateTasks = async () => {
-            // Guard clauses to ensure this runs only once when needed
             if (!user || !user.profile || !firestore) return;
             if (user.lockedUniversities.length === 0) return;
             if (user.state?.actionPlan) return;
@@ -161,6 +237,12 @@ export default function Stage4Applications() {
     const tasks = applicationTasks || [];
     const completedTasks = tasks.filter(task => task.completed).length;
     const progress = tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0;
+    const allTasksCompleted = useMemo(() => tasks.length > 0 && tasks.every(task => task.completed), [tasks]);
+    const preparationCompleted = user?.state?.applicationPreparationCompleted;
+
+    if (preparationCompleted || allTasksCompleted) {
+        return <CompletionView />;
+    }
 
     return (
         <StageWrapper icon={ClipboardCheck} title="Your Application Plan" description={`Here is your action plan for ${user?.lockedUniversities.join(', ')}. Complete these tasks to stay on track.`}>

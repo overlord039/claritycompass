@@ -9,7 +9,7 @@
         "fullName": { "type": "string" },
         "email": { "type": "string", "format": "email" },
         "onboardingComplete": { "type": "boolean" },
-        "currentStage": { "type": "number", "description": "The user's current stage in the application process (1-4)." },
+        "currentStage": { "type": "number", "description": "The user's current stage in the application process (1-5)." },
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of user creation." }
       },
       "required": ["id", "fullName", "email", "onboardingComplete", "currentStage", "createdAt"]
@@ -61,6 +61,10 @@
       "description": "Stores the user's current state and AI-driven assessments.",
       "properties": {
         "currentStage": { "type": "number" },
+        "applicationPreparationCompleted": {
+          "type": "boolean",
+          "description": "Indicates if the user has completed all preparation tasks."
+        },
         "profileStrength": {
           "type": "object",
           "properties": {

@@ -52,6 +52,26 @@ export function NextMissionCard() {
         );
     }
     
+    if (user.currentStage >= 5) {
+        return (
+            <Card className="flex flex-col items-center justify-center text-center">
+                <CardHeader className="p-4">
+                    <CardTitle className="text-base font-semibold">
+                        Application Preparation Complete
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="flex-grow flex flex-col items-center justify-center gap-2 p-4">
+                    <p className="text-muted-foreground text-xs px-2">
+                        You've completed all preparation tasks. You are now ready to start applying on the official university portals.
+                    </p>
+                    <Button size="sm" className="w-full mt-2" asChild>
+                        <Link href="/dashboard/tasks">Review Completed Plan</Link>
+                    </Button>
+                </CardContent>
+            </Card>
+        );
+    }
+
     return (
         <Card className="flex flex-col items-center justify-center text-center">
             <CardHeader className="p-4">

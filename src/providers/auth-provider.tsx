@@ -44,6 +44,7 @@ type AuthContextType = {
   updateNotes: (notes: string) => Promise<void>;
   addSession: (sessionData: Omit<Session, 'id' | 'userId' | 'createdAt' | 'date'> & { date: Date }) => Promise<void>;
   deleteSession: (sessionId: string) => Promise<void>;
+  markPreparationComplete: () => Promise<void>;
   shortlistedUniversities: string[];
   lockedUniversities: string[];
   applicationTasks: ApplicationTask[];
@@ -504,6 +505,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     toast({ title: 'Session Removed' });
   }, [firestore, firebaseUser, toast]);
 
+  const markPreparationComplete = useCallback(async () => {
+    if (!firebaseUser) return;
+    const batch = writeBatch(firestore);
+    
+    const userRef = doc(firestore, 'users', firebaseUser.uid);
+    batch.update(userRef, { currentStage: 5 });
+
+    const userStateRef = doc(firestore, 'user_state', firebaseUser.uid);
+    batch.set(userStateRef, { currentStage: 5, applicationPreparationCompleted: true }, { merge: true });
+
+    await batch.commit();
+    toast({ title: 'Preparation Complete!', description: "You're all set to start applying." });
+  }, [firestore, firebaseUser, toast]);
+
 
   const value = useMemo(() => ({
     user: appUser,
@@ -524,13 +539,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updateNotes,
     addSession,
     deleteSession,
+    markPreparationComplete,
     shortlistedUniversities: appUser?.shortlistedUniversities || [],
     lockedUniversities: appUser?.lockedUniversities || [],
     applicationTasks: appUser?.applicationTasks || [],
     sessions: appUser?.sessions || [],
     profileStrength: appUser?.state?.profileStrength || null,
     updateProfileStrength,
-  }), [appUser, authProviderLoading, login, signup, googleSignIn, sendPasswordReset, logout, updateProfile, setStage, shortlistUniversity, removeShortlistedUniversity, lockUniversities, unlockUniversities, updateTasks, updateTaskStatus, updateNotes, addSession, deleteSession, updateProfileStrength]);
+  }), [appUser, authProviderLoading, login, signup, googleSignIn, sendPasswordReset, logout, updateProfile, setStage, shortlistUniversity, removeShortlistedUniversity, lockUniversities, unlockUniversities, updateTasks, updateTaskStatus, updateNotes, addSession, deleteSession, markPreparationComplete, updateProfileStrength]);
 
   return (
     <AuthContext.Provider value={value}>
