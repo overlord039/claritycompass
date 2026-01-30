@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, ArrowRight, ThumbsUp, Rocket, Target, ShieldCheck, Search, Loader2, Lock } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ThumbsUp, Rocket, Target, ShieldCheck, Search, Loader2, Lock, Heart } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -257,6 +257,15 @@ export default function DiscoverPage() {
     }
   }
 
+  const allRecommendations = categorizedUniversities ? [
+      ...categorizedUniversities.dream,
+      ...categorizedUniversities.target,
+      ...categorizedUniversities.safe
+  ] : [];
+
+  const shortlistedAndRecommended = allRecommendations.filter(uni => shortlistedUniversities.includes(uni.name));
+  const lockedAndRecommended = allRecommendations.filter(uni => lockedUniversities.includes(uni.name));
+
   return (
     <StageWrapper icon={Search} title="AI-Powered University Discovery" description="Your profile has been analyzed to generate these personalized recommendations. Shortlist at least one university to proceed.">
       <div className="mb-6 p-4 bg-primary/10 rounded-lg border border-primary/20 grid grid-cols-2 gap-4 text-center">
@@ -281,20 +290,38 @@ export default function DiscoverPage() {
                 </div>
             </div>
         ) : categorizedUniversities ? (
-            <Tabs defaultValue="target" className="w-full">
+            <Tabs defaultValue="discover" className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="dream"><Rocket className="mr-2 h-4 w-4" />Dream ({categorizedUniversities.dream.length})</TabsTrigger>
-                    <TabsTrigger value="target"><Target className="mr-2 h-4 w-4" />Target ({categorizedUniversities.target.length})</TabsTrigger>
-                    <TabsTrigger value="safe"><ShieldCheck className="mr-2 h-4 w-4" />Safe ({categorizedUniversities.safe.length})</TabsTrigger>
+                    <TabsTrigger value="discover"><Search className="mr-2 h-4 w-4" />AI Discovery</TabsTrigger>
+                    <TabsTrigger value="shortlisted"><Heart className="mr-2 h-4 w-4" />Shortlisted ({shortlistedAndRecommended.length})</TabsTrigger>
+                    <TabsTrigger value="locked"><Lock className="mr-2 h-4 w-4" />Locked ({lockedAndRecommended.length})</TabsTrigger>
                 </TabsList>
-                <TabsContent value="dream" className="mt-6">
-                    <UniversityGrid universities={categorizedUniversities.dream} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} lockedUniversities={lockedUniversities} />
+
+                <TabsContent value="discover" className="mt-6">
+                    <Tabs defaultValue="target" className="w-full">
+                        <TabsList className="grid w-full grid-cols-3">
+                            <TabsTrigger value="dream"><Rocket className="mr-2 h-4 w-4" />Dream ({categorizedUniversities.dream.length})</TabsTrigger>
+                            <TabsTrigger value="target"><Target className="mr-2 h-4 w-4" />Target ({categorizedUniversities.target.length})</TabsTrigger>
+                            <TabsTrigger value="safe"><ShieldCheck className="mr-2 h-4 w-4" />Safe ({categorizedUniversities.safe.length})</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="dream" className="mt-6">
+                            <UniversityGrid universities={categorizedUniversities.dream} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} lockedUniversities={lockedUniversities} />
+                        </TabsContent>
+                        <TabsContent value="target" className="mt-6">
+                            <UniversityGrid universities={categorizedUniversities.target} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} lockedUniversities={lockedUniversities} />
+                        </TabsContent>
+                        <TabsContent value="safe" className="mt-6">
+                            <UniversityGrid universities={categorizedUniversities.safe} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} lockedUniversities={lockedUniversities} />
+                        </TabsContent>
+                    </Tabs>
                 </TabsContent>
-                <TabsContent value="target" className="mt-6">
-                    <UniversityGrid universities={categorizedUniversities.target} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} lockedUniversities={lockedUniversities} />
+
+                <TabsContent value="shortlisted" className="mt-6">
+                    <UniversityGrid universities={shortlistedAndRecommended} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} lockedUniversities={lockedUniversities} />
                 </TabsContent>
-                <TabsContent value="safe" className="mt-6">
-                    <UniversityGrid universities={categorizedUniversities.safe} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} lockedUniversities={lockedUniversities} />
+
+                <TabsContent value="locked" className="mt-6">
+                    <UniversityGrid universities={lockedAndRecommended} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} lockedUniversities={lockedUniversities} />
                 </TabsContent>
             </Tabs>
         ) : (
