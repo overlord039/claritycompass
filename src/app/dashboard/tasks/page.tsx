@@ -64,9 +64,9 @@ export default function TasksPage() {
 
     useEffect(() => {
         const generateTasks = async () => {
-             if (!user || !user.profile || user.lockedUniversities.length === 0 || user.state?.actionPlan) {
-                return;
-            }
+             if (!user || !user.profile || !firestore) return;
+             if (user.lockedUniversities.length === 0) return;
+             if (user.state?.actionPlan) return;
 
             const lockedUniversityName = user.lockedUniversities[0];
             const lockedUniversity = allUniversities.find(u => u.name === lockedUniversityName);
@@ -125,26 +125,24 @@ export default function TasksPage() {
                 timeline: timeline
             };
 
-            if (firestore && user.uid) {
-                const batch = writeBatch(firestore);
-                const userStateRef = doc(firestore, 'user_state', user.uid);
-                batch.set(userStateRef, { actionPlan: applicationStrategy }, { merge: true });
+            const batch = writeBatch(firestore);
+            const userStateRef = doc(firestore, 'user_state', user.uid);
+            batch.set(userStateRef, { actionPlan: applicationStrategy }, { merge: true });
 
-                generatedTasks.forEach(task => {
-                    const taskRef = doc(firestore, 'users', user.uid, 'tasks', task.id);
-                    batch.set(taskRef, {
-                        id: task.id,
-                        userId: user.uid,
-                        title: task.title,
-                        stage: 4,
-                        completed: task.completed,
-                        generatedBy: 'AI',
-                        createdAt: serverTimestamp(),
-                    });
+            generatedTasks.forEach(task => {
+                const taskRef = doc(firestore, 'users', user.uid, 'tasks', task.id);
+                batch.set(taskRef, {
+                    id: task.id,
+                    userId: user.uid,
+                    title: task.title,
+                    stage: 4,
+                    completed: task.completed,
+                    generatedBy: 'AI',
+                    createdAt: serverTimestamp(),
                 });
+            });
 
-                await batch.commit();
-            }
+            await batch.commit();
         };
 
         generateTasks();
