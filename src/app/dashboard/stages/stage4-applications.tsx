@@ -126,14 +126,14 @@ export default function Stage4Applications() {
             };
 
             const batch = writeBatch(firestore);
-            const userStateRef = doc(firestore, 'user_state', user.uid);
+            const userStateRef = doc(firestore, 'user_state', user.id);
             batch.set(userStateRef, { actionPlan: applicationStrategy }, { merge: true });
             
             generatedTasks.forEach(task => {
-                const taskRef = doc(firestore, 'users', user.uid, 'tasks', task.id);
+                const taskRef = doc(firestore, 'users', user.id, 'tasks', task.id);
                 batch.set(taskRef, {
                     id: task.id,
-                    userId: user.uid,
+                    userId: user.id,
                     title: task.title,
                     stage: 4,
                     completed: task.completed,
