@@ -88,6 +88,10 @@ export async function getAIPersonalizedGuidance(
         '4': {
             guidance: "You've locked in your choice! Let's get to work on your application. I've generated a personalized task list for you.",
             actions: ["Start working on your Statement of Purpose.", "Request Letters of Recommendation."]
+        },
+        '5': {
+            guidance: "Congratulations on completing your preparation! You're now ready to submit your applications via the university portals. Focus on tracking their status and preparing for interviews.",
+            actions: ["Submit your applications.", "Monitor application status.", "Prepare for admission interviews."]
         }
     }
     const result = stageGuidance[input.currentStage] || {guidance: "Let's figure out the next steps for you.", actions: ["Review your profile."]};
