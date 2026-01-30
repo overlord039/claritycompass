@@ -7,6 +7,7 @@ import { ShortlistedUniversitiesCard } from '@/components/dashboard/cards/shortl
 import { NextMissionCard } from '@/components/dashboard/cards/next-mission-card';
 import { AiGuidance } from '@/components/dashboard/ai-guidance';
 import { StageIndicator } from '@/components/dashboard/stage-indicator';
+import { AiChatCard } from '@/components/dashboard/cards/ai-chat-card';
 
 
 export default function DashboardHomePage() {
@@ -19,9 +20,10 @@ export default function DashboardHomePage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-2 space-y-6">
                         <Skeleton className="h-56 w-full" />
-                        <Skeleton className="h-56 w-full" />
+                        <Skeleton className="h-[500px] w-full" />
                     </div>
                     <div className="space-y-6">
+                        <Skeleton className="h-56 w-full" />
                         <Skeleton className="h-56 w-full" />
                         <Skeleton className="h-56 w-full" />
                     </div>
@@ -38,11 +40,12 @@ export default function DashboardHomePage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                     <ProfileAnalysisCard />
-                    <ShortlistedUniversitiesCard />
+                    <AiChatCard />
                 </div>
                 <div className="space-y-6">
                     <NextMissionCard />
                     <AiGuidance />
+                    <ShortlistedUniversitiesCard />
                 </div>
             </div>
         </div>

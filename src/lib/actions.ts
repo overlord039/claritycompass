@@ -25,6 +25,11 @@ import {
     type GuestChatInput,
     type GuestChatOutput,
 } from '@/ai/flows/guest-chat-flow';
+import {
+    aiChat as aiChatFlow,
+    type AIChatInput,
+    type AIChatOutput,
+} from '@/ai/flows/ai-chat-flow';
 
 
 export async function assessProfile(
@@ -109,3 +114,15 @@ export async function guestChat(
         return null;
     }
 }
+
+export async function aiChat(
+    input: AIChatInput
+  ): Promise<AIChatOutput | null> {
+      try {
+          const output = await aiChatFlow(input);
+          return output;
+      } catch (error) {
+          console.error('Error in aiChat action:', error);
+          return null;
+      }
+  }
