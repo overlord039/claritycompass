@@ -16,6 +16,13 @@ type Message = {
   content: string;
 };
 
+const suggestedQuestions = [
+    "How does the AI assessment work?",
+    "What are the application stages?",
+    "Can I find universities for my budget?",
+];
+
+
 export function GuestChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -26,6 +33,7 @@ export function GuestChat() {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -41,13 +49,13 @@ export function GuestChat() {
   }, [isOpen, messages]);
 
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || loading) return;
+  const handleSendMessage = async (message: string) => {
+    if (!message.trim() || loading) return;
 
-    const userMessage: Message = { role: 'user', content: input };
+    if(!hasInteracted) setHasInteracted(true);
+
+    const userMessage: Message = { role: 'user', content: message };
     setMessages(prev => [...prev, userMessage]);
-    setInput('');
     setLoading(true);
 
     const chatHistory: GuestChatInput['history'] = messages.map(msg => ({
@@ -64,6 +72,12 @@ export function GuestChat() {
       setMessages(prev => [...prev, { role: 'model', content: "Sorry, I'm having trouble connecting right now. Please try again later." }]);
     }
     setLoading(false);
+  }
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    handleSendMessage(input);
+    setInput('');
   };
 
   return (
@@ -147,6 +161,25 @@ export function GuestChat() {
                         )}
                       </div>
                     ))}
+
+                    {!hasInteracted && (
+                        <div className="flex flex-col items-start gap-2 pt-4">
+                            <p className="text-xs text-muted-foreground font-medium">Or try asking:</p>
+                            {suggestedQuestions.map((q, i) => (
+                                <Button
+                                    key={i}
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-auto py-1.5 px-3 text-left"
+                                    onClick={() => handleSendMessage(q)}
+                                    disabled={loading}
+                                >
+                                    {q}
+                                </Button>
+                            ))}
+                        </div>
+                    )}
+
                     {loading && (
                         <div className="flex items-start gap-3 text-sm justify-start">
                             <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
