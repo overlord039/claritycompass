@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { getAIPersonalizedGuidance } from '@/lib/actions';
 import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CheckCircle2 } from 'lucide-react';
+import { PartyPopper } from 'lucide-react';
 
 export function NextMissionCard() {
     const { user } = useAuth();
@@ -58,16 +58,16 @@ export function NextMissionCard() {
             <Card className="flex flex-col items-center justify-center text-center">
                 <CardHeader className="p-4">
                     <CardTitle className="text-base font-semibold flex items-center gap-2">
-                        <CheckCircle2 className="h-5 w-5 text-primary" />
-                        Application-Ready!
+                        <PartyPopper className="h-5 w-5 text-primary" />
+                        Application Ready
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="flex-grow flex flex-col items-center justify-center gap-2 p-4 pt-0">
                     <p className="text-muted-foreground text-xs px-2">
-                        All preparation tasks are complete. You can now confidently submit your applications on the official university portals.
+                        You’ve completed all preparation tasks. You’re now ready to submit applications confidently.
                     </p>
                     <Button size="sm" className="w-full mt-2" asChild>
-                        <Link href="/dashboard/tasks">Review Your Final Plan</Link>
+                        <Link href="/dashboard/tasks">Review Application Strategy</Link>
                     </Button>
                 </CardContent>
             </Card>
