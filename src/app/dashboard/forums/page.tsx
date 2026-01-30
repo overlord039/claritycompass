@@ -50,14 +50,14 @@ function AddSessionForm({ onAddSession, isSubmitting }: { onAddSession: (session
 
     return (
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="title" className="text-right">
+            <div className="grid gap-2">
+                <Label htmlFor="title">
                     Title
                 </Label>
-                <Input id="title" name="title" value={title} onChange={(e) => setTitle(e.target.value)} className="col-span-3" disabled={isSubmitting} />
+                <Input id="title" name="title" value={title} onChange={(e) => setTitle(e.target.value)} disabled={isSubmitting} />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="date" className="text-right">
+            <div className="grid gap-2">
+                <Label htmlFor="date">
                     Date
                 </Label>
                 <Popover>
@@ -65,7 +65,7 @@ function AddSessionForm({ onAddSession, isSubmitting }: { onAddSession: (session
                         <Button
                             variant={"outline"}
                             className={cn(
-                                "w-full justify-start text-left font-normal col-span-3",
+                                "w-full justify-start text-left font-normal",
                                 !date && "text-muted-foreground"
                             )}
                             disabled={isSubmitting}
@@ -84,12 +84,12 @@ function AddSessionForm({ onAddSession, isSubmitting }: { onAddSession: (session
                     </PopoverContent>
                 </Popover>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="type" className="text-right">
+            <div className="grid gap-2">
+                <Label htmlFor="type">
                     Type
                 </Label>
                 <Select onValueChange={(value: Session['type']) => setType(value)} value={type} disabled={isSubmitting}>
-                    <SelectTrigger className="col-span-3">
+                    <SelectTrigger>
                         <SelectValue placeholder="Select event type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -100,7 +100,7 @@ function AddSessionForm({ onAddSession, isSubmitting }: { onAddSession: (session
                     </SelectContent>
                 </Select>
             </div>
-            <DialogFooter>
+            <DialogFooter className="pt-4">
                 <DialogClose asChild>
                     <Button type="button" variant="secondary" disabled={isSubmitting}>Cancel</Button>
                 </DialogClose>
