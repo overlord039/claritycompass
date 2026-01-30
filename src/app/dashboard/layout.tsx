@@ -1,40 +1,50 @@
 'use client';
 
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, type ReactNode, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/providers/auth-provider';
 import { Header } from '@/components/header';
 import { Skeleton } from '@/components/ui/skeleton';
-import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 function DashboardNav() {
     const pathname = usePathname();
+    const router = useRouter();
     const navItems = [
-        { name: 'Dashboard', href: '/dashboard' },
-        { name: 'Universities', href: '/dashboard/discover' },
-        { name: 'To-do List', href: '/dashboard/tasks' },
-        { name: 'Notes/Sessions', href: '/dashboard/forums' },
+        { name: 'Dashboard', value: 'dashboard', href: '/dashboard' },
+        { name: 'Universities', value: 'discover', href: '/dashboard/discover' },
+        { name: 'To-do List', value: 'tasks', href: '/dashboard/tasks' },
+        { name: 'Notes/Sessions', value: 'forums', href: '/dashboard/forums' },
     ];
+
+    const currentTab = useMemo(() => {
+        const segments = pathname.split('/');
+        return segments[2] || 'dashboard';
+    }, [pathname]);
+
+    const handleTabChange = (value: string) => {
+        const item = navItems.find(item => item.value === value);
+        if (item) {
+            router.push(item.href);
+        }
+    };
 
     return (
         <div className="w-full overflow-x-auto">
-            <nav className="flex items-center space-x-2">
-                {navItems.map((item) => (
-                    <Button
-                        key={item.name}
-                        asChild
-                        variant={pathname === item.href ? 'secondary' : 'ghost'}
-                        className={cn(
-                            "font-semibold shrink-0",
-                            pathname === item.href ? "text-foreground" : "text-muted-foreground"
-                        )}
-                    >
-                        <Link href={item.href}>{item.name.toUpperCase()}</Link>
-                    </Button>
-                ))}
-            </nav>
+            <Tabs value={currentTab} onValueChange={handleTabChange} className="inline-block">
+                <TabsList className="bg-transparent p-0">
+                    {navItems.map((item) => (
+                        <TabsTrigger 
+                            key={item.value} 
+                            value={item.value}
+                            className="font-semibold shrink-0 text-muted-foreground data-[state=active]:text-foreground data-[state=active]:shadow-none rounded-none border-b-2 border-transparent data-[state=active]:border-primary transition-none px-4"
+                        >
+                            {item.name.toUpperCase()}
+                        </TabsTrigger>
+                    ))}
+                </TabsList>
+            </Tabs>
         </div>
     );
 }
