@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, ArrowRight, ThumbsUp, Rocket, Target, ShieldCheck, Search, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ThumbsUp, Rocket, Target, ShieldCheck, Search, Loader2, Lock } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -27,7 +27,7 @@ type UniversityRecommendation = {
 };
 
 
-function UniversityCard({ university, onShortlist, isShortlisted }: { university: UniversityRecommendation; onShortlist: () => void; isShortlisted: boolean }) {
+function UniversityCard({ university, onShortlist, isShortlisted, isLocked }: { university: UniversityRecommendation; onShortlist: () => void; isShortlisted: boolean; isLocked: boolean }) {
     return (
         <Card className="overflow-hidden flex flex-col h-full bg-background/50 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 transition-all duration-300 group">
              <div className="relative w-full h-40">
@@ -40,6 +40,12 @@ function UniversityCard({ university, onShortlist, isShortlisted }: { university
                     data-ai-hint={university.imageHint}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                 {isLocked && (
+                    <div className="absolute top-2 left-2 flex items-center gap-1.5 text-primary-foreground text-xs font-semibold bg-primary/90 backdrop-blur-sm px-2.5 py-1 rounded-full shadow-lg">
+                        <Lock size={12} />
+                        <span>Locked</span>
+                    </div>
+                )}
                  <Badge className="absolute top-2 right-2" variant={
                     university.acceptanceLikelihood === 'High' ? 'default' : university.acceptanceLikelihood === 'Medium' ? 'secondary' : 'destructive'
                 }>
@@ -66,15 +72,15 @@ function UniversityCard({ university, onShortlist, isShortlisted }: { university
             </CardContent>
             <CardFooter>
                  <Button onClick={onShortlist} disabled={isShortlisted} className="w-full">
-                    {isShortlisted ? 'Shortlisted' : 'Shortlist this University'}
-                    {isShortlisted && <ThumbsUp className="ml-2 h-4 w-4" />}
+                    {isLocked ? 'Locked' : isShortlisted ? 'Shortlisted' : 'Shortlist this University'}
+                    {isLocked ? <Lock className="ml-2 h-4 w-4" /> : isShortlisted ? <ThumbsUp className="ml-2 h-4 w-4" /> : null}
                 </Button>
             </CardFooter>
         </Card>
     );
 }
 
-const UniversityGrid = ({ universities, onShortlist, shortlistedUniversities }: { universities: UniversityRecommendation[], onShortlist: (name: string) => void, shortlistedUniversities: string[] }) => {
+const UniversityGrid = ({ universities, onShortlist, shortlistedUniversities, lockedUniversities }: { universities: UniversityRecommendation[], onShortlist: (name: string) => void, shortlistedUniversities: string[], lockedUniversities: string[] }) => {
     if (universities.length === 0) {
         return (
             <div className="text-center py-16">
@@ -91,6 +97,7 @@ const UniversityGrid = ({ universities, onShortlist, shortlistedUniversities }: 
                     university={uni} 
                     onShortlist={() => onShortlist(uni.name)}
                     isShortlisted={shortlistedUniversities.includes(uni.name)}
+                    isLocked={lockedUniversities.includes(uni.name)}
                 />
             ))}
         </div>
@@ -98,7 +105,7 @@ const UniversityGrid = ({ universities, onShortlist, shortlistedUniversities }: 
 }
 
 export default function DiscoverPage() {
-  const { user, setStage, shortlistUniversity, shortlistedUniversities } = useAuth();
+  const { user, setStage, shortlistUniversity, shortlistedUniversities, lockedUniversities } = useAuth();
   const [categorizedUniversities, setCategorizedUniversities] = useState<{ dream: UniversityRecommendation[], target: UniversityRecommendation[], safe: UniversityRecommendation[] } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -252,6 +259,16 @@ export default function DiscoverPage() {
 
   return (
     <StageWrapper icon={Search} title="AI-Powered University Discovery" description="Your profile has been analyzed to generate these personalized recommendations. Shortlist at least one university to proceed.">
+      <div className="mb-6 p-4 bg-primary/10 rounded-lg border border-primary/20 grid grid-cols-2 gap-4 text-center">
+        <div>
+          <h3 className="text-sm font-semibold text-muted-foreground">Shortlisted</h3>
+          <p className="text-3xl font-bold text-primary">{shortlistedUniversities.length}</p>
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold text-muted-foreground">Locked</h3>
+          <p className="text-3xl font-bold text-primary">{lockedUniversities.length}</p>
+        </div>
+      </div>
       <div className="space-y-8">
         {loading ? (
             <div className='text-center py-10'>
@@ -271,13 +288,13 @@ export default function DiscoverPage() {
                     <TabsTrigger value="safe"><ShieldCheck className="mr-2 h-4 w-4" />Safe ({categorizedUniversities.safe.length})</TabsTrigger>
                 </TabsList>
                 <TabsContent value="dream" className="mt-6">
-                    <UniversityGrid universities={categorizedUniversities.dream} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} />
+                    <UniversityGrid universities={categorizedUniversities.dream} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} lockedUniversities={lockedUniversities} />
                 </TabsContent>
                 <TabsContent value="target" className="mt-6">
-                    <UniversityGrid universities={categorizedUniversities.target} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} />
+                    <UniversityGrid universities={categorizedUniversities.target} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} lockedUniversities={lockedUniversities} />
                 </TabsContent>
                 <TabsContent value="safe" className="mt-6">
-                    <UniversityGrid universities={categorizedUniversities.safe} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} />
+                    <UniversityGrid universities={categorizedUniversities.safe} onShortlist={shortlistUniversity} shortlistedUniversities={shortlistedUniversities} lockedUniversities={lockedUniversities} />
                 </TabsContent>
             </Tabs>
         ) : (
