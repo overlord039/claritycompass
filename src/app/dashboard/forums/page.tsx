@@ -60,7 +60,7 @@ function AddSessionForm({ onAddSession, isSubmitting }: { onAddSession: (session
                 <Label htmlFor="date">
                     Date
                 </Label>
-                <Popover>
+                <Popover modal={true}>
                     <PopoverTrigger asChild>
                         <Button
                             variant={"outline"}
