@@ -11,7 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useFirestore } from '@/firebase';
-import { doc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { doc, writeBatch, serverTimestamp, deleteField } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { universities as allUniversities } from '@/lib/data';
@@ -67,11 +67,13 @@ const CompletionView = () => {
     };
 
     const isMarkedComplete = user?.state?.applicationPreparationCompleted;
+    const actionPlan = user?.state?.actionPlan;
+    const tasks = user?.applicationTasks || [];
 
     return (
         <StageWrapper icon={CheckCircle2} title="You're Ready to Apply" description="You’ve completed all preparation tasks for your locked universities. Your profile is now application-ready.">
-            <div className="space-y-8 text-center">
-                <div className="p-6 bg-green-500/10 rounded-lg border border-green-500/20">
+            <div className="space-y-8">
+                <div className="p-6 bg-green-500/10 rounded-lg border border-green-500/20 text-center">
                     <h3 className="font-semibold text-lg text-green-700 dark:text-green-300">All Preparation Tasks Completed</h3>
                     <Progress value={100} className="mt-2 h-2" />
                 </div>
@@ -86,7 +88,54 @@ const CompletionView = () => {
                     </ul>
                 </div>
 
-                <div className="pt-6 border-t border-dashed">
+                {actionPlan && (
+                    <div className="text-left bg-background/50 p-6 rounded-lg border">
+                        <h4 className="font-semibold mb-4 text-lg">Your Application Plan Summary</h4>
+                        <div className="space-y-6">
+                            {actionPlan.timeline && actionPlan.timeline.length > 0 && (
+                                <div>
+                                    <h3 className="text-md font-semibold mb-3 flex items-center gap-2"><CalendarDays className="h-5 w-5 text-primary" /> Application Timeline</h3>
+                                    <div className="space-y-4 border-l-2 border-primary/20 border-dashed pl-6 ml-2 text-sm">
+                                        {actionPlan.timeline.map((item, index) => (
+                                            <div key={index} className="relative">
+                                                <div className="absolute -left-[31px] top-1 h-4 w-4 rounded-full bg-primary ring-4 ring-background" />
+                                                <p className="font-semibold text-foreground">{item.phase}: {item.focus}</p>
+                                                <p className="text-muted-foreground">Est. Duration: {item.duration}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {actionPlan.requiredDocuments && actionPlan.requiredDocuments.length > 0 && (
+                                <div>
+                                    <h3 className="text-md font-semibold mb-3 flex items-center gap-2"><FileText className="h-5 w-5 text-primary" /> Required Documents</h3>
+                                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 list-disc list-inside text-muted-foreground pl-2 text-sm">
+                                        {actionPlan.requiredDocuments.map((doc, index) => (
+                                            <li key={index}>{doc}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                            {tasks.length > 0 && (
+                                <div>
+                                    <h3 className="text-md font-semibold mb-3 flex items-center gap-2"><ListChecks className="h-5 w-5 text-primary" /> Completed To-Do List</h3>
+                                    <div className="space-y-2 rounded-lg border bg-background/30 p-4 max-h-60 overflow-y-auto">
+                                        {tasks.map(task => (
+                                            <div key={task.id} className="flex items-center space-x-3 p-2 rounded-md bg-background/50">
+                                                <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                                <span className="text-muted-foreground line-through text-sm">
+                                                    {task.title}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                <div className="pt-6 border-t border-dashed text-center">
                      <h4 className="font-semibold mb-4 text-lg">Your Next Move</h4>
                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="p-4 rounded-lg border bg-background/50 flex flex-col items-center">
@@ -328,7 +377,7 @@ export default function TasksPage() {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleUnlock}>Confirm and Unlock</AlertDialogAction>
+                                <AlertDialogAction onClick={unlockUniversities}>Confirm and Unlock</AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
