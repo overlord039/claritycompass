@@ -39,7 +39,7 @@ export function ShortlistedUniversitiesCard() {
     const universities = allUniversities.filter(uni => shortlistedUniversities.includes(uni.name));
 
     return (
-        <Card className="h-full flex flex-col">
+        <Card className="flex flex-col">
             <CardHeader className="p-4">
                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
                     <Heart className="h-4 w-4" />

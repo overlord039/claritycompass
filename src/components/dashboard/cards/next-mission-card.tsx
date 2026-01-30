@@ -39,7 +39,7 @@ export function NextMissionCard() {
 
     if (loading || !user) {
         return (
-            <Card className="h-full">
+            <Card>
                 <CardHeader className="p-4">
                     <Skeleton className="h-5 w-3/4" />
                 </CardHeader>
@@ -53,7 +53,7 @@ export function NextMissionCard() {
     }
     
     return (
-        <Card className="flex flex-col items-center justify-center text-center h-full">
+        <Card className="flex flex-col items-center justify-center text-center">
             <CardHeader className="p-4">
                 <CardTitle className="text-base font-semibold">
                     {mission ? `Stage ${user.currentStage}: ${mission.name}` : '✨ Next Mission'}

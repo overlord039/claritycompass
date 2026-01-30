@@ -120,7 +120,7 @@ export function ProfileAnalysisCard() {
     const profileStatus = getProfileStatus(profileScore);
 
     return (
-        <Card className="flex flex-col h-full">
+        <Card className="flex flex-col">
             <CardHeader className="flex flex-row items-start justify-between p-4">
                 <div>
                     <CardTitle className="text-base font-semibold">Profile Analysis</CardTitle>

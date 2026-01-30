@@ -32,7 +32,7 @@ export function AiGuidance() {
 
   if (loading) {
     return (
-        <Card className="h-full bg-primary/10 backdrop-blur-xl border border-primary/20 shadow-lg shadow-primary/10">
+        <Card className="bg-primary/10 backdrop-blur-xl border border-primary/20 shadow-lg shadow-primary/10">
             <CardHeader className="p-3">
                 <CardTitle className="flex items-center gap-2 font-headline text-base">
                     <Lightbulb className="h-4 w-4 text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]" />
@@ -57,7 +57,7 @@ export function AiGuidance() {
   if (!guidance) return null;
 
   return (
-    <Card className="h-full bg-primary/10 backdrop-blur-xl border border-primary/20 shadow-lg shadow-primary/10">
+    <Card className="bg-primary/10 backdrop-blur-xl border border-primary/20 shadow-lg shadow-primary/10">
       <CardHeader className="p-3">
         <CardTitle className="flex items-center gap-2 font-headline text-base">
           <Lightbulb className="h-4 w-4 text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]" />
