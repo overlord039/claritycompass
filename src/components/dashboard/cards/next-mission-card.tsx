@@ -1,5 +1,4 @@
 'use client';
-import Link from 'next/link';
 import { useAuth } from '@/providers/auth-provider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,9 +6,11 @@ import { getAIPersonalizedGuidance } from '@/lib/actions';
 import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PartyPopper, Rocket, ListChecks } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-export function NextMissionCard() {
+export function NextMissionCard({ setActiveTab }: { setActiveTab: (tab: string) => void }) {
     const { user } = useAuth();
+    const router = useRouter();
     const [guidance, setGuidance] = useState<{ guidance: string; actions: string[] } | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -29,11 +30,11 @@ export function NextMissionCard() {
         fetchGuidance();
     }, [user]);
 
-    const stageDetails: { [key: number]: { name: string; text: string; href: string; } } = {
-        1: { name: "Build Profile", text: "Complete Your Profile", href: "/onboarding"},
-        2: { name: "Discover Universities", text: "Discover Universities", href: "/dashboard/discover" },
-        3: { name: "Finalize Choices", text: "Finalize Choices", href: "/dashboard/finalize" },
-        4: { name: "Prepare Applications", text: "View Your Action Plan", href: "/dashboard/tasks" },
+    const stageDetails: { [key: number]: { name: string; text: string; tab: string; action: () => void; } } = {
+        1: { name: "Build Profile", text: "Complete Your Profile", tab: "profile", action: () => router.push('/onboarding')},
+        2: { name: "Discover Universities", text: "Discover Universities", tab: "universities", action: () => setActiveTab("universities") },
+        3: { name: "Finalize Choices", text: "Finalize Choices", tab: "universities", action: () => setActiveTab("universities") },
+        4: { name: "Prepare Applications", text: "View Your Action Plan", tab: "tasks", action: () => setActiveTab("tasks") },
     };
     
     const mission = user ? stageDetails[user.currentStage] : null;
@@ -86,8 +87,8 @@ export function NextMissionCard() {
                             </ul>
                         </div>
                     )}
-                    <Button size="sm" className="w-full mt-2" asChild>
-                        <Link href="/dashboard/tasks">Review Application Strategy</Link>
+                    <Button size="sm" className="w-full mt-2" onClick={() => setActiveTab('tasks')}>
+                        Review Application Strategy
                     </Button>
                 </CardContent>
             </Card>
@@ -117,8 +118,8 @@ export function NextMissionCard() {
                   </div>
                 )}
                 {mission ? (
-                     <Button size="sm" className="w-full mt-2" asChild>
-                        <Link href={mission.href}>{mission.text}</Link>
+                     <Button size="sm" className="w-full mt-2" onClick={mission.action}>
+                        {mission.text}
                      </Button>
                 ) : null}
             </CardContent>
