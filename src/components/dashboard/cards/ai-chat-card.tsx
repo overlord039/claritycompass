@@ -58,6 +58,7 @@ export function AiChatCard() {
 
     const response = await aiChat({
         history: chatHistory,
+        currentStage: user.currentStage,
         userProfile: JSON.stringify(user.profile),
         userState: JSON.stringify(user.state),
         shortlistedUniversities: user.shortlistedUniversities,
