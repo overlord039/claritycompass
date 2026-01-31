@@ -227,7 +227,7 @@ export default function NotesAndSessionsPage() {
                                         const iconInfo = getIconInfo(session.type);
                                         const sessionDate = session.date instanceof Timestamp ? session.date.toDate() : new Date(session.date);
                                         return (
-                                        <div key={session.id} className="flex items-center justify-between p-3 rounded-md bg-background/50 border">
+                                        <div key={session.id} className="flex items-center justify-between p-3 rounded-md bg-card/80 backdrop-blur-sm border-border/20">
                                             <div className="flex items-center gap-3">
                                                 <div className={cn("p-1.5 rounded-full", iconInfo.bg)}>
                                                     <CalendarIcon className={cn("h-4 w-4", iconInfo.color)} />

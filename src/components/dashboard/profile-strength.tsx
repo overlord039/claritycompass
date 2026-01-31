@@ -198,7 +198,7 @@ export function ProfileStrength() {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 flex-grow w-full">
                         {/* Academics Card */}
-                        <div className="p-4 rounded-lg bg-background/30 border flex flex-col items-center text-center justify-center h-full">
+                        <div className="p-4 rounded-lg bg-secondary border flex flex-col items-center text-center justify-center h-full">
                             <ShieldCheck className="w-7 h-7 text-primary mb-2" />
                             <p className="font-semibold text-foreground mb-1">Academics</p>
                             <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-medium border', getStrengthColor(profileStrength.academics))}>
@@ -209,7 +209,7 @@ export function ProfileStrength() {
                         {/* Exams Card */}
                         <Popover>
                             <PopoverTrigger asChild>
-                                <div className="relative p-4 rounded-lg bg-background/30 border flex flex-col items-center text-center justify-center h-full cursor-pointer hover:bg-accent/50 transition-colors">
+                                <div className="relative p-4 rounded-lg bg-secondary border flex flex-col items-center text-center justify-center h-full cursor-pointer hover:bg-accent/50 transition-colors">
                                     <Edit className="w-3 h-3 absolute top-2 right-2 text-muted-foreground" />
                                     <BookOpen className="w-7 h-7 text-primary mb-2" />
                                     <p className="font-semibold text-foreground mb-1">Exams</p>
@@ -265,7 +265,7 @@ export function ProfileStrength() {
                         {/* SOP Card */}
                         <Popover>
                              <PopoverTrigger asChild>
-                                <div className="relative p-4 rounded-lg bg-background/30 border flex flex-col items-center text-center justify-center h-full cursor-pointer hover:bg-accent/50 transition-colors">
+                                <div className="relative p-4 rounded-lg bg-secondary border flex flex-col items-center text-center justify-center h-full cursor-pointer hover:bg-accent/50 transition-colors">
                                     <Edit className="w-3 h-3 absolute top-2 right-2 text-muted-foreground" />
                                     <FileText className="w-7 h-7 text-primary mb-2" />
                                     <p className="font-semibold text-foreground mb-1">SOP</p>

@@ -13,7 +13,7 @@ import { GuestChat } from '@/components/guest-chat';
 
 const UniversityCard = ({ uni }: { uni: University }) => (
     <div className="p-2 w-72 flex-shrink-0">
-        <div className="bg-background/30 rounded-lg h-full flex flex-col overflow-hidden group transition-all duration-300 hover:border-primary/30 border border-transparent hover:shadow-lg hover:shadow-primary/10">
+        <div className="bg-card/80 backdrop-blur-sm border border-border/20 rounded-lg h-full flex flex-col overflow-hidden group transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10">
             <div className="relative w-full h-40">
                 <Image
                     src={uni.imageUrl}
@@ -76,7 +76,7 @@ export default function Home() {
 
       <section className="py-12 sm:py-20">
         <div className="container mx-auto px-4 md:px-6">
-            <div className="bg-card/40 backdrop-blur-lg rounded-2xl p-8 sm:p-12 border border-white/10 shadow-2xl shadow-primary/5">
+            <div className="bg-card/40 backdrop-blur-lg rounded-2xl p-8 sm:p-12 border border-primary/20 shadow-2xl shadow-primary/5">
                 <div className="text-center max-w-3xl mx-auto">
                     <h2 className="text-3xl font-bold tracking-tight text-foreground font-headline sm:text-4xl">
                         Explore a Curated Selection of World-Class Institutions

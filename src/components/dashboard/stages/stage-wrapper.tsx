@@ -11,7 +11,7 @@ interface StageWrapperProps {
 
 export function StageWrapper({ icon: Icon, title, description, children }: StageWrapperProps) {
   return (
-    <Card className="shadow-2xl shadow-primary/5 bg-card/60 backdrop-blur-xl border border-white/20">
+    <Card className="shadow-2xl shadow-primary/5 bg-card/60 backdrop-blur-xl border border-primary/20">
       <CardHeader>
         <CardTitle className="flex items-center gap-3 font-headline text-2xl">
           <Icon className="w-7 h-7 text-primary" />

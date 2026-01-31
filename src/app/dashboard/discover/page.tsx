@@ -29,7 +29,7 @@ type UniversityRecommendation = {
 
 function UniversityCard({ university, onShortlist, isShortlisted, isLocked }: { university: UniversityRecommendation; onShortlist: () => void; isShortlisted: boolean; isLocked: boolean }) {
     return (
-        <Card className="overflow-hidden flex flex-col h-full bg-background/50 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 transition-all duration-300 group">
+        <Card className="overflow-hidden flex flex-col h-full bg-card/80 backdrop-blur-sm border border-border/20 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 transition-all duration-300 group">
              <div className="relative w-full h-40">
                 <Image
                     src={university.imageUrl}

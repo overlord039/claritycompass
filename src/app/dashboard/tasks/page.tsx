@@ -29,7 +29,7 @@ const PreparingSkeleton = ({ user }: { user: AppUser | null }) => (
                     <h3 className="text-lg font-semibold mb-3 flex items-center gap-2"><Lock className="h-5 w-5 text-primary" /> Locked Universities</h3>
                     <div className="grid grid-cols-1 gap-2">
                         {user.lockedUniversities.map((uni, index) => (
-                            <div key={index} className="p-3 rounded-md bg-background/50 border">
+                            <div key={index} className="p-3 rounded-md bg-secondary border">
                                 <p className="font-semibold text-foreground">{uni}</p>
                             </div>
                         ))}
@@ -71,7 +71,7 @@ const CompletionView = () => {
                     <Progress value={100} className="mt-2 h-2" />
                 </div>
 
-                <div className="text-left bg-background/50 p-6 rounded-lg border">
+                <div className="text-left bg-secondary p-6 rounded-lg border">
                     <h4 className="font-semibold mb-3 flex items-center gap-2"><Info className="h-5 w-5 text-primary" /> What this means</h4>
                     <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
                         <li>Your required documents list is prepared.</li>
@@ -82,7 +82,7 @@ const CompletionView = () => {
                 </div>
 
                 {actionPlan && (
-                    <div className="text-left bg-background/50 p-6 rounded-lg border">
+                    <div className="text-left bg-secondary p-6 rounded-lg border">
                         <h4 className="font-semibold mb-4 text-lg">Your Application Plan Summary</h4>
                         <div className="space-y-6">
                             {actionPlan.timeline && actionPlan.timeline.length > 0 && (
@@ -114,7 +114,7 @@ const CompletionView = () => {
                                     <h3 className="text-md font-semibold mb-3 flex items-center gap-2"><ListChecks className="h-5 w-5 text-primary" /> Completed To-Do List</h3>
                                     <div className="space-y-2 rounded-lg border bg-background/30 p-4 max-h-60 overflow-y-auto">
                                         {tasks.map(task => (
-                                            <div key={task.id} className="flex items-center space-x-3 p-2 rounded-md bg-background/50">
+                                            <div key={task.id} className="flex items-center space-x-3 p-2 rounded-md bg-secondary">
                                                 <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
                                                 <span className="text-muted-foreground line-through text-sm">
                                                     {task.title}
@@ -131,14 +131,14 @@ const CompletionView = () => {
                 <div className="pt-6 border-t border-dashed text-center">
                      <h4 className="font-semibold mb-4 text-lg">Your Next Move</h4>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="p-4 rounded-lg border bg-background/50 flex flex-col items-center">
+                        <div className="p-4 rounded-lg border bg-secondary flex flex-col items-center">
                              <h5 className="font-semibold mb-2">Finalize Preparation</h5>
                              <p className="text-xs text-muted-foreground mb-4">Mark this stage as complete to lock your progress and move to a post-application monitoring view.</p>
                              <Button onClick={markPreparationComplete} disabled={isMarkedComplete} className="w-full mt-auto">
                                 {isMarkedComplete ? <><Check className="mr-2"/>Completed</> : "Mark Preparation Complete"}
                             </Button>
                         </div>
-                        <div className="p-4 rounded-lg border bg-background/50 flex flex-col items-center">
+                        <div className="p-4 rounded-lg border bg-secondary flex flex-col items-center">
                             <h5 className="font-semibold mb-2">Review Dashboard</h5>
                             <p className="text-xs text-muted-foreground mb-4">Return to your main dashboard to review your profile summary, notes, and overall journey.</p>
                             <Button variant="outline" asChild className="w-full mt-auto">
@@ -322,9 +322,9 @@ export default function TasksPage() {
                                 <Progress value={progress} className="h-2" />
                                 <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">{completedTasks} / {tasks.length}</span>
                             </div>
-                            <div className="space-y-3 rounded-lg border bg-background/30 p-4 max-h-96 overflow-y-auto">
+                            <div className="space-y-3 rounded-lg border bg-secondary p-4 max-h-96 overflow-y-auto">
                                 {tasks.map(task => (
-                                    <div key={task.id} className="flex items-center space-x-3 p-3 rounded-md bg-background/50 border hover:bg-accent/50 transition-colors">
+                                    <div key={task.id} className="flex items-center space-x-3 p-3 rounded-md bg-card/80 backdrop-blur-sm border-border/20 hover:bg-accent/50 transition-colors">
                                         <Checkbox 
                                             id={`stage-task-${task.id}`} 
                                             checked={task.completed}

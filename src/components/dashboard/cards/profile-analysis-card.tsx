@@ -142,7 +142,7 @@ export function ProfileAnalysisCard() {
                 </div>
 
                 <div className="w-full grid grid-cols-2 gap-2">
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50">
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-secondary">
                         <div className="p-1.5 bg-accent rounded-md">
                             <GraduationCap className="h-4 w-4 text-accent-foreground" />
                         </div>
@@ -151,7 +151,7 @@ export function ProfileAnalysisCard() {
                             <p className="font-semibold text-foreground text-xs truncate">{user?.profile?.studyGoal.intendedDegree || 'N/A'}</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50">
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-secondary">
                          <div className="p-1.5 bg-accent rounded-md">
                             <Trophy className="h-4 w-4 text-accent-foreground" />
                         </div>
@@ -160,7 +160,7 @@ export function ProfileAnalysisCard() {
                             <p className="font-semibold text-foreground text-sm">{user?.profile?.academic.gpa || 'N/A'}</p>
                         </div>
                     </div>
-                     <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50">
+                     <div className="flex items-center gap-2 p-2 rounded-lg bg-secondary">
                          <div className="p-1.5 bg-accent rounded-md">
                             <Wallet className="h-4 w-4 text-accent-foreground" />
                         </div>
@@ -169,7 +169,7 @@ export function ProfileAnalysisCard() {
                             <p className="font-semibold text-foreground text-xs truncate">{user?.profile?.budget.budgetRangePerYear || 'N/A'}</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50">
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-secondary">
                          <div className="p-1.5 bg-accent rounded-md">
                             <BookOpen className="h-4 w-4 text-accent-foreground" />
                         </div>

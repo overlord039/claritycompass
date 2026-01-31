@@ -54,7 +54,7 @@ export function TodoList() {
                                 </div>
                                 <div className="space-y-3">
                                     {tasks.map(task => (
-                                        <div key={task.id} className="flex items-center space-x-3 p-3 rounded-md bg-background/30 border">
+                                        <div key={task.id} className="flex items-center space-x-3 p-3 rounded-md bg-secondary border">
                                             <Checkbox 
                                                 id={`task-${task.id}`} 
                                                 checked={task.completed}

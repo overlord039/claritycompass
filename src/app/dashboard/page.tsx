@@ -33,7 +33,7 @@ export default function DashboardHomePage() {
 
     if (loading || !user) {
         return (
-            <Card className="bg-card/60 backdrop-blur-xl border-white/20 shadow-2xl shadow-primary/5">
+            <Card className="bg-card/60 backdrop-blur-xl border-primary/10 shadow-2xl shadow-primary/10">
                 <CardContent className="p-6 space-y-6">
                     <Skeleton className="h-24 w-full" />
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -52,7 +52,7 @@ export default function DashboardHomePage() {
     }
 
     return (
-        <Card className="bg-card/60 backdrop-blur-xl border-white/20 shadow-2xl shadow-primary/5">
+        <Card className="bg-card/60 backdrop-blur-xl border-primary/10 shadow-2xl shadow-primary/10">
             <CardContent className="p-6 space-y-6">
                 <div className="bg-background/50 rounded-lg p-6">
                     <StageIndicator currentStage={user.currentStage} />

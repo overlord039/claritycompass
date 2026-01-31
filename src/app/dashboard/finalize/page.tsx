@@ -54,7 +54,7 @@ export default function FinalizePage() {
                     {shortlisted.map(uni => {
                         const isSelected = selectedToLock.includes(uni.name);
                         return (
-                            <Card key={uni.id} className={`group overflow-hidden flex flex-col h-full transition-all duration-300 ${isSelected ? 'ring-2 ring-primary shadow-2xl shadow-primary/30' : 'bg-background/50'}`}>
+                            <Card key={uni.id} className={`group overflow-hidden flex flex-col h-full transition-all duration-300 ${isSelected ? 'ring-2 ring-primary shadow-2xl shadow-primary/30' : 'bg-card/80 backdrop-blur-sm border border-border/20'}`}>
                                 <div className="relative w-full h-40">
                                     <Image src={uni.imageUrl} alt={`Campus of ${uni.name}`} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover transition-transform duration-300 group-hover:scale-105" data-ai-hint={uni.imageHint}/>
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
