@@ -404,8 +404,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         batch.update(docRef, { locked: true });
       });
     
-    batch.update(doc(firestore, 'users', firebaseUser.id), { currentStage: 4 });
-    batch.set(doc(firestore, 'user_state', firebaseUser.id), { currentStage: 4 }, { merge: true });
+    batch.update(doc(firestore, 'users', firebaseUser.uid), { currentStage: 4 });
+    batch.set(doc(firestore, 'user_state', firebaseUser.uid), { currentStage: 4 }, { merge: true });
 
     await batch.commit();
   }, [firestore, firebaseUser, appUser]);
@@ -426,9 +426,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         batch.delete(taskRef);
     });
 
-    batch.update(doc(firestore, 'users', firebaseUser.id), { currentStage: 3 });
+    batch.update(doc(firestore, 'users', firebaseUser.uid), { currentStage: 3 });
     // Also clear the action plan from state
-    batch.set(doc(firestore, 'user_state', firebaseUser.id), { 
+    batch.set(doc(firestore, 'user_state', firebaseUser.uid), { 
         currentStage: 3,
         actionPlan: deleteField() 
     }, { merge: true });
@@ -490,7 +490,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateNotes = useCallback(async (notes: string) => {
     if (!firebaseUser) return;
-    const userStateDocRef = doc(firestore, 'user_state', firebaseUser.id);
+    const userStateDocRef = doc(firestore, 'user_state', firebaseUser.uid);
     await setDoc(userStateDocRef, { notes }, { merge: true });
     toast({
         title: 'Notes Saved!',
@@ -525,7 +525,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const deleteSession = useCallback(async (sessionId: string) => {
     if (!firebaseUser) return;
-    const sessionDocRef = doc(firestore, 'users', firebaseUser.id, 'sessions', sessionId);
+    const sessionDocRef = doc(firestore, 'users', firebaseUser.uid, 'sessions', sessionId);
     await deleteDoc(sessionDocRef);
     toast({ title: 'Session Removed' });
   }, [firestore, firebaseUser, toast]);
