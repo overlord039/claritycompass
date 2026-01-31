@@ -154,6 +154,9 @@ const CompletionView = ({setActiveTab}: {setActiveTab: (tab: string) => void}) =
 export function TasksTab({ setActiveTab }: { setActiveTab: (tab: string) => void }) {
     const { user, loading: authLoading, unlockUniversities, updateTaskStatus, applicationTasks } = useAuth();
     const firestore = useFirestore();
+    
+    const tasks = applicationTasks || [];
+    const allTasksCompleted = useMemo(() => tasks.length > 0 && tasks.every(task => task.completed), [tasks]);
 
     useEffect(() => {
         const generateTasks = async () => {
@@ -219,14 +222,14 @@ export function TasksTab({ setActiveTab }: { setActiveTab: (tab: string) => void
             };
 
             const batch = writeBatch(firestore);
-            const userStateRef = doc(firestore, 'user_state', user.id);
+            const userStateRef = doc(firestore, 'user_state', user.uid);
             batch.set(userStateRef, { actionPlan: applicationStrategy }, { merge: true });
 
             generatedTasks.forEach(task => {
-                const taskRef = doc(firestore, 'users', user.id, 'tasks', task.id);
+                const taskRef = doc(firestore, 'users', user.uid, 'tasks', task.id);
                 batch.set(taskRef, {
                     id: task.id,
-                    userId: user.id,
+                    userId: user.uid,
                     title: task.title,
                     stage: 4,
                     completed: task.completed,
@@ -245,7 +248,7 @@ export function TasksTab({ setActiveTab }: { setActiveTab: (tab: string) => void
         return <PreparingSkeleton user={user} />;
     }
 
-    if (!authLoading && (user.currentStage < 4 || user.lockedUniversities.length === 0)) {
+    if (user.currentStage < 4 || user.lockedUniversities.length === 0) {
         return (
             <StageWrapper icon={ClipboardCheck} title="Your Application Plan" description="Lock a university to generate your personalized action plan.">
                 <div className="text-center py-10">
@@ -259,21 +262,20 @@ export function TasksTab({ setActiveTab }: { setActiveTab: (tab: string) => void
         );
     }
     
-    const actionPlan = user?.state?.actionPlan;
-    
-    if (user && user.lockedUniversities.length > 0 && !actionPlan) {
-        return <PreparingSkeleton user={user} />;
-    }
-
-    const tasks = applicationTasks || [];
-    const completedTasks = tasks.filter(task => task.completed).length;
-    const progress = tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0;
-    const allTasksCompleted = useMemo(() => tasks.length > 0 && tasks.every(task => task.completed), [tasks]);
     const preparationCompleted = user?.state?.applicationPreparationCompleted;
 
     if (preparationCompleted || allTasksCompleted) {
         return <CompletionView setActiveTab={setActiveTab} />;
     }
+
+    const actionPlan = user?.state?.actionPlan;
+    
+    if (!actionPlan) {
+        return <PreparingSkeleton user={user} />;
+    }
+
+    const completedTasks = tasks.filter(task => task.completed).length;
+    const progress = tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0;
 
     return (
         <StageWrapper icon={ClipboardCheck} title="Your Application Plan" description={`Here is your action plan for ${user?.lockedUniversities.join(', ')}. Complete these tasks to stay on track.`}>

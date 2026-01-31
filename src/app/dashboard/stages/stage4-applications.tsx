@@ -158,6 +158,9 @@ export default function Stage4Applications() {
     const { user, loading: authLoading, unlockUniversities, updateTaskStatus, applicationTasks } = useAuth();
     const firestore = useFirestore();
 
+    const tasks = applicationTasks || [];
+    const allTasksCompleted = useMemo(() => tasks.length > 0 && tasks.every(task => task.completed), [tasks]);
+
     useEffect(() => {
         const generateTasks = async () => {
             if (!user || !user.profile || !firestore) return;
@@ -223,14 +226,14 @@ export default function Stage4Applications() {
             };
 
             const batch = writeBatch(firestore);
-            const userStateRef = doc(firestore, 'user_state', user.id);
+            const userStateRef = doc(firestore, 'user_state', user.uid);
             batch.set(userStateRef, { actionPlan: applicationStrategy }, { merge: true });
             
             generatedTasks.forEach(task => {
-                const taskRef = doc(firestore, 'users', user.id, 'tasks', task.id);
+                const taskRef = doc(firestore, 'users', user.uid, 'tasks', task.id);
                 batch.set(taskRef, {
                     id: task.id,
-                    userId: user.id,
+                    userId: user.uid,
                     title: task.title,
                     stage: 4,
                     completed: task.completed,
@@ -249,21 +252,18 @@ export default function Stage4Applications() {
         return <PreparingSkeleton user={user} />;
     }
     
-    const actionPlan = user?.state?.actionPlan;
-    
-    if (user && user.lockedUniversities.length > 0 && !actionPlan) {
-        return <PreparingSkeleton user={user} />;
-    }
-
-    const tasks = applicationTasks || [];
-    const completedTasks = tasks.filter(task => task.completed).length;
-    const progress = tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0;
-    const allTasksCompleted = useMemo(() => tasks.length > 0 && tasks.every(task => task.completed), [tasks]);
     const preparationCompleted = user?.state?.applicationPreparationCompleted;
-
     if (preparationCompleted || allTasksCompleted) {
         return <CompletionView />;
     }
+    
+    const actionPlan = user?.state?.actionPlan;
+    if (user.lockedUniversities.length > 0 && !actionPlan) {
+        return <PreparingSkeleton user={user} />;
+    }
+
+    const completedTasks = tasks.filter(task => task.completed).length;
+    const progress = tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0;
 
     return (
         <StageWrapper icon={ClipboardCheck} title="Your Application Plan" description={`Here is your action plan for ${user?.lockedUniversities.join(', ')}. Complete these tasks to stay on track.`}>
