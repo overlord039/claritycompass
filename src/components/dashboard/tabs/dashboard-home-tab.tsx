@@ -31,10 +31,10 @@ export function DashboardHomeTab({ setActiveTab }: { setActiveTab: (tab: string)
     if (!user) return null;
 
     const adjustedStages = [
-        { id: 1, name: 'Build Profile', Icon: User },
-        { id: 2, name: 'Discover Universities', Icon: Compass },
-        { id: 3, name: 'Finalize Choices', Icon: Lock },
-        { id: 4, name: 'Prepare Applications', Icon: FileText },
+        { id: 1, name: 'Build Profile', Icon: User, description: 'Complete your profile to unlock AI recommendations.' },
+        { id: 2, name: 'Discover Universities', Icon: Compass, description: 'Explore universities matched to your profile.' },
+        { id: 3, name: 'Finalize Choices', Icon: Lock, description: 'Shortlist and lock your final university choices.' },
+        { id: 4, name: 'Prepare Applications', Icon: FileText, description: 'Follow your personalized application plan.' },
     ];
     
     const isPreparationCompleted = !!user.state?.applicationPreparationCompleted;
@@ -47,62 +47,43 @@ export function DashboardHomeTab({ setActiveTab }: { setActiveTab: (tab: string)
                     <CardTitle className="text-xl">Your Journey</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-2">
-                    <div className="relative">
-                        <ol role="list" className="flex items-center">
-                            {adjustedStages.map((stage, stageIdx) => {
-                                const isCompleted = user.currentStage > stage.id || (stage.id === 4 && finalStageCompleted);
-                                const isCurrent = user.currentStage === stage.id && !finalStageCompleted;
-                                const isLastStage = stageIdx === adjustedStages.length - 1;
+                    <ol className="relative border-l border-border/20 ml-4">
+                        {adjustedStages.map((stage) => {
+                            const isCompleted = user.currentStage > stage.id || (stage.id === 4 && finalStageCompleted);
+                            const isCurrent = user.currentStage === stage.id && !finalStageCompleted;
 
-                                return (
-                                    <li key={stage.name} className={cn('relative', !isLastStage && 'flex-1')}>
-                                    {!isLastStage && (
-                                        <div
+                            return (
+                                <li key={stage.id} className="mb-8 ml-8">
+                                    <span
                                         className={cn(
-                                            "absolute left-4 top-4 -ml-px mt-0.5 h-0.5 w-full",
-                                            isCompleted ? "bg-primary" : "bg-border"
+                                            "absolute -left-[18px] flex items-center justify-center w-9 h-9 rounded-full ring-8 ring-background",
+                                            isCompleted ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
+                                            isCurrent && 'border-2 border-primary animate-pulse-glow bg-primary/10 text-primary'
                                         )}
-                                        aria-hidden="true"
-                                        />
-                                    )}
-                                    
-                                    <div className="relative flex flex-col items-center text-center">
-                                        <div
-                                        className={cn(
-                                            'relative flex h-8 w-8 items-center justify-center rounded-full',
-                                            isCompleted ? 'bg-primary' : 'border-2 bg-background',
-                                            isCurrent ? 'border-primary animate-pulse-glow' : 'border-border'
-                                        )}
-                                        >
-                                        {isCompleted ? (
-                                            <Check className="h-5 w-5 text-primary-foreground" />
-                                        ) : (
-                                            <stage.Icon className={cn('h-4 w-4', isCurrent ? 'text-primary' : 'text-muted-foreground')} />
-                                        )}
-                                        </div>
-                                        <p className={cn(
-                                        "mt-2 text-[10px] sm:text-xs font-medium w-20 sm:w-auto",
-                                        isCurrent ? 'text-primary' : 'text-muted-foreground',
-                                        isCompleted && 'text-foreground'
-                                        )}>
-                                        {stage.name}
-                                        </p>
+                                    >
+                                        {isCompleted ? <Check className="h-5 w-5" /> : <stage.Icon className="h-5 w-5" />}
+                                    </span>
+                                    <div className='-mt-1'>
+                                        <h3 className={cn("font-semibold", isCurrent || isCompleted ? "text-foreground" : "text-muted-foreground")}>
+                                            {stage.name}
+                                        </h3>
+                                        <p className="text-sm text-muted-foreground">{stage.description}</p>
                                     </div>
-                                    </li>
-                                );
-                            })}
-                        </ol>
+                                </li>
+                            );
+                        })}
                         {finalStageCompleted && (
-                            <div className="absolute right-[-1.5rem] md:right-[-2rem] top-[-0.75rem] -mr-px flex">
-                                <div className="relative flex flex-col items-center text-center ml-4">
-                                     <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-primary">
-                                        <PartyPopper className="h-5 w-5 text-primary-foreground" />
-                                    </div>
-                                    <p className="mt-2 text-xs font-medium text-primary w-24">Application Ready</p>
+                            <li className="ml-8">
+                                <span className="absolute -left-[18px] flex items-center justify-center w-9 h-9 bg-primary text-primary-foreground rounded-full ring-8 ring-background">
+                                    <PartyPopper className="h-5 w-5" />
+                                </span>
+                                <div className='-mt-1'>
+                                    <h3 className="font-semibold text-primary">Application Ready</h3>
+                                    <p className="text-sm text-muted-foreground">Congratulations! You're ready to submit your applications.</p>
                                 </div>
-                            </div>
+                            </li>
                         )}
-                    </div>
+                    </ol>
                 </CardContent>
             </Card>
 
