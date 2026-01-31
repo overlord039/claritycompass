@@ -311,7 +311,7 @@ export default function DiscoverPage() {
 
   return (
     <Tabs defaultValue="discover" className="w-full">
-        <TabsList className="w-full justify-start">
+        <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="discover"><Search className="mr-2 h-4 w-4" />AI Discovery</TabsTrigger>
             <TabsTrigger value="shortlisted"><Heart className="mr-2 h-4 w-4" />Shortlisted ({shortlistedAndRecommended.length})</TabsTrigger>
             <TabsTrigger value="locked"><Lock className="mr-2 h-4 w-4" />Locked ({lockedAndRecommended.length})</TabsTrigger>
@@ -324,7 +324,7 @@ export default function DiscoverPage() {
                     <LoadingSkeletons/>
                 ) : categorizedUniversities ? (
                     <Tabs defaultValue={defaultAiTab} className="w-full">
-                        <TabsList className="w-full justify-start">
+                        <TabsList className="grid w-full grid-cols-3">
                             <TabsTrigger value="dream"><Rocket className="mr-2 h-4 w-4" />Dream ({categorizedUniversities.dream.length})</TabsTrigger>
                             <TabsTrigger value="target"><Target className="mr-2 h-4 w-4" />Target ({categorizedUniversities.target.length})</TabsTrigger>
                             <TabsTrigger value="safe"><ShieldCheck className="mr-2 h-4 w-4" />Safe ({categorizedUniversities.safe.length})</TabsTrigger>
