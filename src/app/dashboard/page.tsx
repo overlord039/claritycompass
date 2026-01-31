@@ -5,7 +5,7 @@ import { useAuth } from '@/providers/auth-provider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, University, ClipboardCheck, Book, User, Compass, Lock, FileText, PartyPopper, Check } from 'lucide-react';
+import { LayoutDashboard, University, ClipboardCheck, Book } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 
 // Import tab content components
@@ -55,16 +55,6 @@ export default function DashboardPage() {
         );
     }
     
-    const adjustedStages = [
-        { id: 1, name: 'Build Profile', Icon: User },
-        { id: 2, name: 'Discover Universities', Icon: Compass },
-        { id: 3, name: 'Finalize Choices', Icon: Lock },
-        { id: 4, name: 'Prepare Applications', Icon: FileText },
-    ];
-    
-    const isPreparationCompleted = !!user.state?.applicationPreparationCompleted;
-    const finalStageCompleted = user.currentStage >= 5 || isPreparationCompleted;
-
     return (
         <div className="bg-card/60 backdrop-blur-xl border border-border/20 shadow-xl shadow-primary/5 rounded-2xl flex flex-col md:flex-row h-full max-h-[calc(100vh-8rem)]">
             <aside className="w-full md:w-56 flex-shrink-0 p-4 border-b md:border-b-0 md:border-r border-border/30">
@@ -87,65 +77,6 @@ export default function DashboardPage() {
             </aside>
 
             <div className="flex-1 flex flex-col overflow-hidden">
-                <div className="p-6 border-b border-border/30">
-                    <div className="relative">
-                        <ol role="list" className="flex items-center">
-                            {adjustedStages.map((stage, stageIdx) => {
-                                const isCompleted = user.currentStage > stage.id || (stage.id === 4 && finalStageCompleted);
-                                const isCurrent = user.currentStage === stage.id && !finalStageCompleted;
-                                const isLastStage = stageIdx === adjustedStages.length - 1;
-
-                                return (
-                                    <li key={stage.name} className={cn('relative', !isLastStage && 'flex-1')}>
-                                    {!isLastStage && (
-                                        <div
-                                        className={cn(
-                                            "absolute left-4 top-4 -ml-px mt-0.5 h-0.5 w-full",
-                                            isCompleted ? "bg-primary" : "bg-border"
-                                        )}
-                                        aria-hidden="true"
-                                        />
-                                    )}
-                                    
-                                    <div className="relative flex flex-col items-center text-center">
-                                        <div
-                                        className={cn(
-                                            'relative flex h-8 w-8 items-center justify-center rounded-full',
-                                            isCompleted ? 'bg-primary' : 'border-2 bg-background',
-                                            isCurrent ? 'border-primary animate-pulse-glow' : 'border-border'
-                                        )}
-                                        >
-                                        {isCompleted ? (
-                                            <Check className="h-5 w-5 text-primary-foreground" />
-                                        ) : (
-                                            <stage.Icon className={cn('h-4 w-4', isCurrent ? 'text-primary' : 'text-muted-foreground')} />
-                                        )}
-                                        </div>
-                                        <p className={cn(
-                                        "mt-2 text-[10px] sm:text-xs font-medium w-20 sm:w-auto",
-                                        isCurrent ? 'text-primary' : 'text-muted-foreground',
-                                        isCompleted && 'text-foreground'
-                                        )}>
-                                        {stage.name}
-                                        </p>
-                                    </div>
-                                    </li>
-                                );
-                            })}
-                        </ol>
-                        {finalStageCompleted && (
-                            <div className="absolute right-[-1.5rem] md:right-[-2rem] top-[-0.75rem] -mr-px flex">
-                                <div className="relative flex flex-col items-center text-center ml-4">
-                                     <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-primary">
-                                        <PartyPopper className="h-5 w-5 text-primary-foreground" />
-                                    </div>
-                                    <p className="mt-2 text-xs font-medium text-primary w-24">Application Ready</p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
                 <div className="flex-1 overflow-y-auto p-6">
                     {activeTab === 'dashboard' && <DashboardHomeTab setActiveTab={setActiveTab} />}
                     {activeTab === 'universities' && <UniversitiesTab setActiveTab={setActiveTab} />}
