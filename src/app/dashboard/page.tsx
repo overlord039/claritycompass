@@ -77,7 +77,7 @@ export default function DashboardPage() {
             </aside>
 
             <div className="flex-1 flex flex-col overflow-hidden">
-                <div className="flex-1 overflow-y-auto p-6">
+                <div className="flex-1 overflow-y-auto p-6 no-scrollbar">
                     {activeTab === 'dashboard' && <DashboardHomeTab setActiveTab={setActiveTab} />}
                     {activeTab === 'universities' && <UniversitiesTab setActiveTab={setActiveTab} />}
                     {activeTab === 'tasks' && <TasksTab setActiveTab={setActiveTab} />}
